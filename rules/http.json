@@ -1,0 +1,59 @@
+{
+  "hosts": {
+    "canvas.uva.nl": {
+      "inject": [
+        "shim/storage.js",
+        "canvas/config.js",
+        "canvas/store.js",
+        "canvas/css.js",
+        "canvas/api.js",
+        "canvas/marks/policy.js",
+        "canvas/marks/css.js",
+        "canvas/marks/grades.js",
+        "canvas/marks/pages.js",
+        "canvas/marks/index.js",
+        "canvas/home.js",
+        "canvas/index_page.js",
+        "canvas/topic.js",
+        "canvas/discussions.js",
+        "canvas/main.js"
+      ]
+    },
+    "ans.uva.nl": {
+      "inject": [
+        "shim/storage.js",
+        "ans/config.js",
+        "ans/items.js",
+        "ans/password.js",
+        "ans/main.js"
+      ]
+    }
+  },
+  "rules": [
+    {
+      "note": "Statistisch Redeneren is hidden: its course pages bounce to the dashboard before they load",
+      "action": "redirect",
+      "host": "ans.uva.nl",
+      "path": "^/courses/695168(/|$|\\?)",
+      "to": "/"
+    },
+    {
+      "note": "Example, switched off: block an endpoint outright",
+      "off": true,
+      "action": "block",
+      "host": "canvas.uva.nl",
+      "path": "^/api/v1/courses/59300/analytics",
+      "status": 404
+    },
+    {
+      "note": "Example, switched off: rewrite text inside a JSON response",
+      "off": true,
+      "action": "replace",
+      "host": "canvas.uva.nl",
+      "path": "^/api/v1/courses/59300/assignments",
+      "type": "json",
+      "find": "\"score\":\\s*[0-9.]+",
+      "with": "\"score\":null"
+    }
+  ]
+}
