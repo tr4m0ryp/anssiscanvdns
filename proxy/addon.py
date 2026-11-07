@@ -1,12 +1,13 @@
 """mitmproxy addon: the HTTPS side of the DNS redirect.
 
-dnsmasq answers the configured hosts (canvas.uva.nl, ans.uva.nl, ...) with
-the tunnel address, so the browser connects here believing it reached the
-real site. mitmproxy runs in reverse mode; this addon re-targets each request
-to the host named in the TLS SNI, applies block/redirect rules before the
-request leaves, then rewrites and injects scripts into the response.
+The resolver answers the configured hosts (canvas.uva.nl, ans.uva.nl and
+their subdomains) with the server's public IP. Caddy terminates TLS there with
+the name-constrained CA's certificate and forwards plain HTTP to this proxy on
+loopback. The addon re-targets each request to the real host named in Host,
+applies block/redirect rules before it leaves, then rewrites, filters and
+injects scripts into the response.
 
-Run: mitmdump --mode reverse:https://canvas.uva.nl@10.77.0.1:8443 \
+Run: mitmdump --mode reverse:https://canvas.uva.nl@127.0.0.1:8444 \
         --set keep_host_header=true --set connection_strategy=lazy -s addon.py
 """
 
@@ -29,16 +30,16 @@ class Anssis:
     def request(self, flow: http.HTTPFlow) -> None:
         rs = self.rules.current()
         req = flow.request
-        host = (flow.client_conn.sni or req.host_header or "").split(":")[0].lower()
+        host = (req.host_header or "").split(":")[0].lower()
         site = rs.site(host)
         if site is None:
             # Only configured sites are proxied; anything else is refused so
             # the box never acts as an open relay.
             flow.response = http.Response.make(421, b"anssiscanvdns: host not intercepted\n")
             return
-        if not flow.client_conn.tls_established:
-            flow.response = http.Response.make(301, b"", {"Location": f"https://{host}{req.path}"})
-            return
+        # Caddy's forwarding headers would reveal the proxy to the real site.
+        for h in ("x-forwarded-for", "x-forwarded-proto", "x-forwarded-host", "via"):
+            req.headers.pop(h, None)
         req.scheme, req.host, req.port = "https", host, 443
         req.host_header = host
         flow.metadata["anssis_site"] = site

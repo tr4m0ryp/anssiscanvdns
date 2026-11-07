@@ -1,0 +1,12 @@
+[Unit]
+Description=anssiscanvdns DNS-over-HTTPS bridge (behind Caddy)
+After=anssis-dns.service
+
+[Service]
+User=@USER@
+ExecStart=/usr/bin/python3 @ROOT@/doh/server.py 127.0.0.1 @DOH_PORT@ 127.0.0.1
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target

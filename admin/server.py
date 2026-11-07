@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Remote rule editor, reachable only through the WireGuard tunnel.
+"""Remote rule editor, served publicly by Caddy behind a password.
 
-Usage: server.py <bind-ip> <port>
+Usage: server.py <bind-ip> <port> <public-host>
 
 Lists the editable files (rules/ and inject/), saves edits, and commits and
 pushes them so GitHub stays the source of truth. The proxy hot-reloads HTTP
@@ -104,7 +104,7 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if not self._guard():
             return
-        if self.headers.get("Origin") != f"http://{self.origin}":
+        if self.headers.get("Origin") != f"https://{self.origin}":
             return self.send_error(403, "cross-origin post")
         length = int(self.headers.get("Content-Length", 0))
         form = parse_qs(self.rfile.read(length).decode(), keep_blank_values=True)
@@ -127,10 +127,10 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main() -> None:
-    if len(sys.argv) != 3:
+    if len(sys.argv) != 4:
         raise SystemExit(__doc__)
     ip, port = sys.argv[1], int(sys.argv[2])
-    Handler.origin = f"{ip}:{port}"
+    Handler.origin = sys.argv[3]
     ThreadingHTTPServer((ip, port), Handler).serve_forever()
 
 

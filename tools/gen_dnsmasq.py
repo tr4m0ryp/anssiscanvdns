@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Render rules/dns.txt and the hosts in rules/http.json into dnsmasq lines.
 
-Usage: gen_dnsmasq.py <repo-root> <proxy-ip>  (prints the config to stdout)
+Usage: gen_dnsmasq.py <repo-root> <proxy-ip>   (the server's public IP)  (prints the config to stdout)
 
 Every proxied host resolves to the proxy for A queries. Its AAAA queries get
 an empty answer, so a dual-stack client can never reach the real site over

@@ -1,13 +1,12 @@
 [Unit]
 Description=anssiscanvdns intercepting HTTPS proxy
-After=wg-quick@wg0.service network-online.target
-Requires=wg-quick@wg0.service
+After=network-online.target
 
 [Service]
 User=@USER@
 Environment=ANSSIS_ROOT=@ROOT@
 ExecStart=@ROOT@/.venv/bin/mitmdump \
-  --mode reverse:https://canvas.uva.nl@@WG_IP@:@PROXY_PORT@ \
+  --mode reverse:https://canvas.uva.nl@127.0.0.1:@MITM_PORT@ \
   --set confdir=@HOME@/.config/anssiscanvdns/mitm \
   --set keep_host_header=true \
   --set connection_strategy=lazy \

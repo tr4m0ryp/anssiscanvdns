@@ -1,11 +1,10 @@
 [Unit]
-Description=anssiscanvdns remote rule editor
-After=wg-quick@wg0.service
-Requires=wg-quick@wg0.service
+Description=anssiscanvdns rule editor (behind Caddy)
+After=network-online.target
 
 [Service]
 User=@USER@
-ExecStart=/usr/bin/python3 @ROOT@/admin/server.py @WG_IP@ @ADMIN_PORT@
+ExecStart=/usr/bin/python3 @ROOT@/admin/server.py 127.0.0.1 @ADMIN_PORT@ @PUBLIC_HOST@
 Restart=always
 RestartSec=2
 
