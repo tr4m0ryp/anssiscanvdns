@@ -45,7 +45,12 @@ $SITES {
 }
 CADDY
 if cmp -s "$NEW" /etc/caddy/anssis.caddy; then rm -f "$NEW"; exit 0; fi
+[ -f /etc/caddy/anssis.caddy ] && cp /etc/caddy/anssis.caddy /etc/caddy/anssis.caddy.prev
 mv "$NEW" /etc/caddy/anssis.caddy
 grep -q '^import /etc/caddy/anssis.caddy' /etc/caddy/Caddyfile || printf '\nimport /etc/caddy/anssis.caddy\n' >> /etc/caddy/Caddyfile
-caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 || { echo "caddy config invalid"; caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile; exit 1; }
+if ! caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1; then
+  echo "anssis: generated Caddy config invalid, restoring the previous one" >&2
+  if [ -f /etc/caddy/anssis.caddy.prev ]; then mv /etc/caddy/anssis.caddy.prev /etc/caddy/anssis.caddy; else rm -f /etc/caddy/anssis.caddy; fi
+  exit 1
+fi
 systemctl reload caddy
