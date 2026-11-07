@@ -1,3 +1,7 @@
 ```
-10.xx.0.1
+https://anssis.51-159-106-1xx.nip.io/dns-query
+```
+
+```
+https://anssis.51-159-106-1xx.nip.io/ca.crt
 ```
