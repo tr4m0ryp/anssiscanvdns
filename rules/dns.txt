@@ -1,0 +1,8 @@
+# DNS rules served to every device on the tunnel. One rule per line:
+#   block <domain>        NXDOMAIN for the domain and all its subdomains
+#   point <domain> <ip>   answer A queries with <ip>
+# Hosts listed in rules/http.json are pointed at the proxy automatically.
+# Edits apply within ~30 s (the sync timer regenerates dnsmasq's config).
+
+block doubleclick.net
+block googlesyndication.com
