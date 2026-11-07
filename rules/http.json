@@ -28,6 +28,9 @@
         "ans/password.js",
         "ans/main.js"
       ]
+    },
+    "github.com": {
+      "inject": []
     }
   },
   "rules": [
@@ -58,6 +61,13 @@
       "host": "canvas.uva.nl",
       "path": "^/api/",
       "match": "(course_|/courses/)(59995|59697)\\b|\"course_?[iI]d\":\\s*\"?(59995|59697)\\b|5062STRE6Y|5092LAVN6Y|Statistisch Redeneren|Lineaire algebra voor Natuur"
+    },
+    {
+      "note": "github.com/tr4m0ryp profile page blocked (self). Only the exact profile path, not /tr4m0ryp/<repo>, so repos and the sync keep working.",
+      "action": "redirect",
+      "host": "github.com",
+      "path": "^/tr4m0ryp(\\?.*)?/?$",
+      "to": "/"
     },
     {
       "note": "Example, switched off: block an endpoint outright",

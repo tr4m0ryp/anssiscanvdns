@@ -19,4 +19,4 @@ ETC=/etc/anssiscanvdns
 # The proxy CA may only sign names under these domains (X.509 name
 # constraints), so a leaked CA key cannot impersonate any other site.
 # Changing this means regenerating the CA and re-trusting it on each client.
-CA_DOMAINS="uva.nl"
+CA_DOMAINS="uva.nl github.com"
