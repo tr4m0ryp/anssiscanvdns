@@ -4,5 +4,5 @@
 # Hosts listed in rules/http.json are pointed at the proxy automatically.
 # Edits apply within ~30 s (the sync timer regenerates dnsmasq's config).
 
-block doubleclick.net
-block googlesyndication.com
+# block doubleclick.net
+# point example.com 10.77.0.1
