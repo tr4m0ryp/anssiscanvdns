@@ -6,3 +6,6 @@
 
 # block doubleclick.net
 # point example.com 10.77.0.1
+
+# SIS fully blocked (2026-11-07)
+block sis.uva.nl
