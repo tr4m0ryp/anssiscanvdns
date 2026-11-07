@@ -30,11 +30,18 @@ def render(root: Path, proxy_ip: str) -> str:
     for h in hosts:
         d = domain(h, "http.json")
         out += [f"address=/{d}/{proxy_ip}", f"address=/{d}/::"]
-    for n, raw in enumerate((root / "rules/dns.txt").read_text().splitlines(), 1):
+    out += dns_lines((root / "rules/dns.txt").read_text(), "dns.txt", proxy_ip)
+    return "\n".join(out) + "\n"
+
+
+def dns_lines(text: str, name: str, proxy_ip: str) -> list[str]:
+    """dnsmasq lines for the block/point rules in `text`; SystemExit on error."""
+    out = []
+    for n, raw in enumerate(text.splitlines(), 1):
         line = raw.split("#", 1)[0].split()
         if not line:
             continue
-        where = f"dns.txt:{n}"
+        where = f"{name}:{n}"
         if line[0] == "block" and len(line) == 2:
             out.append(f"address=/{domain(line[1], where)}/")
         elif line[0] == "point" and len(line) == 3 and IPV4.match(line[2]):
@@ -42,7 +49,7 @@ def render(root: Path, proxy_ip: str) -> str:
             out += [f"address=/{d}/{line[2]}", f"address=/{d}/::"]
         else:
             raise SystemExit(f"{where}: cannot parse {raw.strip()!r}")
-    return "\n".join(out) + "\n"
+    return out
 
 
 if __name__ == "__main__":

@@ -12,18 +12,19 @@ POSTs must come from this origin (defeats cross-site form posts from any
 other tab in the same browser).
 """
 
-import html
 import json
 import subprocess
 import sys
 import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import parse_qs, urlparse
+from urllib.parse import parse_qs, urlencode, urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "proxy"))
+sys.path.insert(0, str(ROOT / "tools"))
 from anssis.events import tail  # noqa: E402
+from gen_dnsmasq import dns_lines  # noqa: E402
 
 from page import render  # noqa: E402
 
@@ -51,8 +52,8 @@ def commit_and_push(rel: str) -> None:
     with GIT_LOCK:
         git("add", "--", rel)
         git("commit", "-q", "-m", f"edit({rel}): via admin page", "--", rel)
-        if "rejected" in git("push", "-q", "origin", "HEAD") or True:
-            git("pull", "-q", "--rebase", "origin", "main")
+        if subprocess.run(["git", "-C", str(ROOT), "push", "-q", "origin", "HEAD"], capture_output=True).returncode:
+            git("pull", "-q", "--rebase", "--autostash", "origin", "main")
             git("push", "-q", "origin", "HEAD")
 
 
@@ -63,10 +64,10 @@ def validate(rel: str, text: str) -> str | None:
         except ValueError as e:
             return f"Not saved: invalid JSON ({e})"
     if rel == "rules/dns.txt":
-        r = subprocess.run(
-            [sys.executable, str(ROOT / "tools/gen_dnsmasq.py"), "/dev/stdin", "0.0.0.0"],
-            capture_output=True, text=True,
-        ) if False else None
+        try:
+            dns_lines(text, "dns.txt", "0.0.0.0")
+        except SystemExit as e:
+            return f"Not saved: {e}"
     return None
 
 
@@ -118,7 +119,7 @@ class Handler(BaseHTTPRequestHandler):
             threading.Thread(target=commit_and_push, args=(rel,), daemon=True).start()
         msg = error or "Saved. Live in ~2 s (HTTP rules) or ~30 s (DNS)."
         self.send_response(303)
-        self.send_header("Location", f"/?f={rel}&msg={msg}")
+        self.send_header("Location", "/?" + urlencode({"f": rel, "msg": msg}))
         self.end_headers()
 
     def log_message(self, fmt, *args) -> None:
