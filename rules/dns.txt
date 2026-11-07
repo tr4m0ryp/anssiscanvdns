@@ -9,3 +9,8 @@
 
 # SIS fully blocked (2026-11-07)
 block sis.uva.nl
+
+# Self-block of own social profiles (2026-11-07): whole domains, path-level
+# is not possible over DNS.
+block x.com
+block linkedin.com
