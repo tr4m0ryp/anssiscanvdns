@@ -29,7 +29,7 @@ def render(root: Path, proxy_ip: str) -> str:
     hosts = json.loads((root / "rules/http.json").read_text())["hosts"]
     for h in hosts:
         d = domain(h, "http.json")
-        out += [f"address=/{d}/{proxy_ip}", f"address=/{d}/::"]
+        out += [f"address=/{d}/{proxy_ip}", f"local=/{d}/"]
     out += dns_lines((root / "rules/dns.txt").read_text(), "dns.txt", proxy_ip)
     return "\n".join(out) + "\n"
 
@@ -46,7 +46,7 @@ def dns_lines(text: str, name: str, proxy_ip: str) -> list[str]:
             out.append(f"address=/{domain(line[1], where)}/")
         elif line[0] == "point" and len(line) == 3 and IPV4.match(line[2]):
             d = domain(line[1], where)
-            out += [f"address=/{d}/{line[2]}", f"address=/{d}/::"]
+            out += [f"address=/{d}/{line[2]}", f"local=/{d}/"]
         else:
             raise SystemExit(f"{where}: cannot parse {raw.strip()!r}")
     return out
