@@ -78,7 +78,9 @@ class Anssis:
                 resp.set_text(new)
                 record("replace", req.host, req.path, f"{rule.note} ({n}x)")
 
-        if inject(flow, rs.bundles.get(site, "")):
+        # Scripts go only into the exact configured host (as the extension's
+        # match patterns did), not into subdomains such as the login portal.
+        if req.host == site and inject(flow, rs.bundles.get(site, "")):
             record("inject", req.host, req.path)
 
 
