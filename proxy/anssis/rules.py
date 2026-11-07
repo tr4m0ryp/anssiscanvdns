@@ -28,7 +28,7 @@ def host_matches(pattern: str, host: str) -> bool:
 class Rule:
     def __init__(self, d: dict):
         self.action = d["action"]
-        if self.action not in ("block", "redirect", "replace"):
+        if self.action not in ("block", "redirect", "replace", "drop"):
             raise ValueError(f"unknown action {self.action!r}")
         self.note = d.get("note", "")
         self.host = d.get("host", "*")
@@ -39,6 +39,7 @@ class Rule:
         self.type = d.get("type", "")
         self.find = re.compile(d["find"]) if self.action == "replace" else None
         self.repl = d.get("with", "")
+        self.drop = re.compile(d["match"]) if self.action == "drop" else None
 
     def matches(self, host: str, method: str, path: str) -> bool:
         return (

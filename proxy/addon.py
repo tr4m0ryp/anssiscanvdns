@@ -17,7 +17,7 @@ from mitmproxy import http
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from anssis import Rules, inject, record  # noqa: E402
+from anssis import Rules, drop_json, inject, record  # noqa: E402
 
 TYPES = {"html": "text/html", "json": "json", "js": "javascript", "css": "text/css", "text": "text/"}
 
@@ -77,6 +77,14 @@ class Anssis:
             if n:
                 resp.set_text(new)
                 record("replace", req.host, req.path, f"{rule.note} ({n}x)")
+
+        if "json" in ctype:
+            for rule in rs.matching("drop", req.host, req.method, req.path):
+                text = resp.get_text(strict=False)
+                new, n = drop_json(text or "", rule.drop)
+                if n:
+                    resp.set_text(new)
+                    record("drop", req.host, req.path, f"{rule.note} ({n} items)")
 
         # Scripts go only into the exact configured host (as the extension's
         # match patterns did), not into subdomains such as the login portal.
