@@ -1,0 +1,6 @@
+[Unit]
+Description=anssiscanvdns: pull rules from git and regenerate DNS
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh @ROOT@/deploy/server/sync.sh

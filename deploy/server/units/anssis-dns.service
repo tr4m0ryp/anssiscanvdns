@@ -1,0 +1,11 @@
+[Unit]
+Description=anssiscanvdns DNS resolver on the WireGuard tunnel
+After=wg-quick@wg0.service network-online.target
+Requires=wg-quick@wg0.service
+
+[Service]
+ExecStart=/usr/sbin/dnsmasq --keep-in-foreground --conf-file=/etc/anssiscanvdns/dnsmasq.conf
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

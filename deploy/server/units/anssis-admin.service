@@ -1,0 +1,13 @@
+[Unit]
+Description=anssiscanvdns remote rule editor
+After=wg-quick@wg0.service
+Requires=wg-quick@wg0.service
+
+[Service]
+User=@USER@
+ExecStart=/usr/bin/python3 @ROOT@/admin/server.py @WG_IP@ @ADMIN_PORT@
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
