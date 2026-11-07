@@ -4,6 +4,7 @@
       "inject": [
         "shim/storage.js",
         "canvas/config.js",
+        "canvas/hidden_courses.js",
         "canvas/store.js",
         "canvas/css.js",
         "canvas/api.js",
@@ -36,6 +37,27 @@
       "host": "ans.uva.nl",
       "path": "^/courses/695168(/|$|\\?)",
       "to": "/"
+    },
+    {
+      "note": "Statistisch Redeneren + Lineaire algebra NS hidden: course pages bounce to the dashboard",
+      "action": "redirect",
+      "host": "canvas.uva.nl",
+      "path": "^/courses/(59995|59697)(/|$|\\?|#)",
+      "to": "/"
+    },
+    {
+      "note": "Hidden courses: their own API endpoints answer 404",
+      "action": "block",
+      "host": "canvas.uva.nl",
+      "path": "^/api/v1/courses/(59995|59697)(/|$|\\?)",
+      "status": 404
+    },
+    {
+      "note": "Hidden courses: dropped from every API list (dashboard, planner, calendar, inbox, GraphQL)",
+      "action": "drop",
+      "host": "canvas.uva.nl",
+      "path": "^/api/",
+      "match": "(course_|/courses/)(59995|59697)\\b|\"course_?[iI]d\":\\s*\"?(59995|59697)\\b|5062STRE6Y|5092LAVN6Y|Statistisch Redeneren|Lineaire algebra voor Natuur"
     },
     {
       "note": "Example, switched off: block an endpoint outright",

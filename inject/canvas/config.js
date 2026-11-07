@@ -29,6 +29,14 @@ CanvasHide.courses = [
   },
 ];
 
+// Courses hidden entirely (see hidden_courses.js): their pages redirect home
+// at the proxy, their API data is dropped there, and anything still rendered
+// that links to or names them is removed from the page.
+CanvasHide.hidden = [
+  { id: "59995", textRe: /5062STRE6Y|Statistisch Redeneren/i },
+  { id: "59697", textRe: /5092LAVN6Y|Lineaire algebra voor Natuur/i },
+];
+
 // The matched course, set by main.js before any page handler runs.
 CanvasHide.course = null;
 
