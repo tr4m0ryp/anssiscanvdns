@@ -13,3 +13,6 @@ block sis.uva.nl
 # Self-block of own social profiles (2026-11-07): whole domains, path-level
 # is not possible over DNS.
 block x.com
+
+# ANS fully blocked (2026-11-20): whole domain, replaces the per-course redirect.
+block ans.uva.nl
