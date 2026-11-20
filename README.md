@@ -1,7 +1,7 @@
 ```
-https://anssis.51-159-106-1xx.nip.io/dns-query
+https://dns.husimi.ai/dns-query
 ```
 
 ```
-https://anssis.51-159-106-1xx.nip.io/ca.crt
+https://dns.husimi.ai/ca.crt
 ```
