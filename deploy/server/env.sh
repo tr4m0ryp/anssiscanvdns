@@ -5,6 +5,9 @@
 # resolve to PUBLIC_IP, where Caddy terminates TLS and hands them to mitmproxy.
 PUBLIC_IP=51.159.106.197
 PUBLIC_HOST=anssis.51-159-106-197.nip.io
+# Extra names for the same public site (each needs an A record to PUBLIC_IP,
+# DNS only). Caddy fetches their certificates on its own.
+PUBLIC_ALIASES="dns.husimi.ai"
 MITM_PORT=8444
 DOH_PORT=8053
 ADMIN_PORT=8088
