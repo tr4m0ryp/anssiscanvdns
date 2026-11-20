@@ -3,7 +3,9 @@
 # Registers the DoH template, sets every active adapter's DNS to the server
 # (one setting per adapter, so it covers every Wi-Fi network), turns IPv6 off
 # on those adapters so lookups cannot bypass the blocker, and trusts the proxy
-# CA (name-constrained to the intercepted domains). Undo: .../win-undo
+# CA (name-constrained to the intercepted domains). Chrome, Edge, Brave and
+# Firefox get a policy that locks their secure DNS to this server, so a
+# browser cannot route around Windows. Undo: .../win-undo
 $ErrorActionPreference = 'Stop'
 $Server = '51.159.106.197'
 $Base = 'https://dns.husimi.ai'
@@ -37,6 +39,20 @@ foreach ($a in $adapters) {
     Set-ItemProperty -Path $key -Name DohFlags -Type QWord -Value 1
     Disable-NetAdapterBinding -Name $a.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue
 }
+
+Write-Host '== browsers: secure DNS locked to this server'
+# Chrome, Edge and Brave read the same policy names; Firefox has its own.
+foreach ($p in 'Google\Chrome', 'Microsoft\Edge', 'BraveSoftware\Brave') {
+    $k = "HKLM:\SOFTWARE\Policies\$p"
+    New-Item -Path $k -Force | Out-Null
+    Set-ItemProperty -Path $k -Name DnsOverHttpsMode -Value 'secure'
+    Set-ItemProperty -Path $k -Name DnsOverHttpsTemplates -Value $Template
+}
+$k = 'HKLM:\SOFTWARE\Policies\Mozilla\Firefox\DNSOverHTTPS'
+New-Item -Path $k -Force | Out-Null
+Set-ItemProperty -Path $k -Name Enabled -Type DWord -Value 1
+Set-ItemProperty -Path $k -Name ProviderURL -Value $Template
+Set-ItemProperty -Path $k -Name Locked -Type DWord -Value 1
 
 Write-Host '== trusting the proxy CA'
 $crt = Join-Path $env:TEMP 'anssis-ca.crt'
