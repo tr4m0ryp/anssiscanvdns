@@ -50,7 +50,7 @@ Write-Host '== every adapter, every network: DNS -> server (DoH), IPv6 off'
 & "$dir\apply.ps1"
 Get-NetAdapter -Physical | ForEach-Object { Write-Host "   $($_.Name) ($($_.Status))" }
 
-$run = "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$dir\apply.ps1`""
+$run = "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $dir\apply.ps1"
 schtasks /Create /F /RU SYSTEM /RL HIGHEST /TN 'anssis-dns-boot' /SC ONSTART /TR $run | Out-Null
 schtasks /Create /F /RU SYSTEM /RL HIGHEST /TN 'anssis-dns-network' /SC ONEVENT `
     /EC 'Microsoft-Windows-NetworkProfile/Operational' /MO '*[System[EventID=10000]]' /TR $run | Out-Null
