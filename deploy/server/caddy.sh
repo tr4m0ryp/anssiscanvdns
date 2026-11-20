@@ -9,6 +9,8 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 install -d -m 755 "$ETC/public"
 install -m 644 "$ETC/ca.crt" "$ETC/public/ca.crt"
+install -m 644 "$ROOT/deploy/windows/setup.ps1" "$ETC/public/win"
+install -m 644 "$ROOT/deploy/windows/undo.ps1" "$ETC/public/win-undo"
 if [ ! -f "$ETC/admin.hash" ]; then
   PW="$(openssl rand -base64 18 | tr -d '/+=' | cut -c1-20)"
   caddy hash-password --plaintext "$PW" > "$ETC/admin.hash"
@@ -27,6 +29,11 @@ $PUBLIC_HOST {
 	handle /ca.crt {
 		root * $ETC/public
 		header Content-Type application/x-x509-ca-cert
+		file_server
+	}
+	handle /win /win-undo {
+		root * $ETC/public
+		header Content-Type "text/plain; charset=utf-8"
 		file_server
 	}
 	handle {
