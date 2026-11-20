@@ -12,6 +12,12 @@ MITM_PORT=8444
 DOH_PORT=8053
 ADMIN_PORT=8088
 
+# DNS-over-TLS on TCP 853 for Android's Private DNS setting (dnsdist in front
+# of the same dnsmasq). It reuses the certificate Caddy keeps for DOT_HOST,
+# which must be one of PUBLIC_HOST / PUBLIC_ALIASES.
+DOT_HOST=dns.husimi.ai
+CADDY_CERTS=/var/lib/caddy/.local/share/caddy/certificates
+
 # Optional WireGuard tunnel: system-wide DNS for a machine (the Mac uses it).
 WG_IF=wg0
 WG_IP=10.77.0.1

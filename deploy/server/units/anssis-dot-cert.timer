@@ -1,0 +1,10 @@
+[Unit]
+Description=anssiscanvdns: daily DoT certificate check (renewal fallback)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=1d
+Unit=anssis-dot-cert.service
+
+[Install]
+WantedBy=timers.target

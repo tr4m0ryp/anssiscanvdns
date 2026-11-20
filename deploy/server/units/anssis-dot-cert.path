@@ -1,0 +1,10 @@
+[Unit]
+Description=anssiscanvdns: watch Caddy renewing the DoT certificate
+
+[Path]
+PathChanged=@CADDY_CERTS@/acme-v02.api.letsencrypt.org-directory/@DOT_HOST@/@DOT_HOST@.crt
+PathChanged=@CADDY_CERTS@/acme-v02.api.letsencrypt.org-directory/@DOT_HOST@/@DOT_HOST@.key
+Unit=anssis-dot-cert.service
+
+[Install]
+WantedBy=paths.target

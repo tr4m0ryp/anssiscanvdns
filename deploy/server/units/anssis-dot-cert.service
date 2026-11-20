@@ -1,0 +1,6 @@
+[Unit]
+Description=anssiscanvdns: hand Caddy's certificate to the DoT listener
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh @ROOT@/deploy/server/dot-cert.sh
