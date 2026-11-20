@@ -12,6 +12,9 @@ if (-not $admin) {
     return
 }
 
+schtasks /Delete /F /TN 'anssis-dns-boot' 2>$null | Out-Null
+schtasks /Delete /F /TN 'anssis-dns-network' 2>$null | Out-Null
+Remove-Item "$env:ProgramData\anssis" -Recurse -Force -ErrorAction SilentlyContinue
 foreach ($a in Get-NetAdapter | Where-Object { -not $_.Virtual }) {
     Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses
     Enable-NetAdapterBinding -Name $a.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue

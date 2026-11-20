@@ -1,8 +1,8 @@
 # Point this Windows 11 PC at the anssiscanvdns resolver over DNS-over-HTTPS.
 #   irm https://dns.husimi.ai/win | iex
-# Registers the DoH template, sets every active adapter's DNS to the server
-# (one setting per adapter, so it covers every Wi-Fi network), turns IPv6 off
-# on those adapters so lookups cannot bypass the blocker, and trusts the proxy
+# Registers the DoH template, points every physical adapter at the server on
+# every network (re-applied by a scheduled task at startup and on each network
+# connect), turns IPv6 off so lookups cannot bypass the blocker, and trusts the proxy
 # CA (name-constrained to the intercepted domains). Chrome, Edge, Brave and
 # Firefox get a policy that locks their secure DNS to this server, so a
 # browser cannot route around Windows. Undo: .../win-undo
@@ -29,16 +29,32 @@ if (Get-DnsClientDohServerAddress -ServerAddress $Server -ErrorAction SilentlyCo
 $dnscache = 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters'
 Set-ItemProperty -Path $dnscache -Name EnableAutoDoh -Type DWord -Value 2
 
-$adapters = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' -and -not $_.Virtual }
-foreach ($a in $adapters) {
-    Write-Host "== $($a.Name): DNS -> $Server (DoH), IPv6 off"
-    Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ServerAddresses $Server
-    # Per-adapter "DNS over HTTPS: On (automatic template)", as the Settings app writes it.
-    $key = "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\$($a.InterfaceGuid)\DohInterfaceSettings\Doh\$Server"
-    New-Item -Path $key -Force | Out-Null
-    Set-ItemProperty -Path $key -Name DohFlags -Type QWord -Value 1
-    Disable-NetAdapterBinding -Name $a.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue
+# The adapter settings live in a small script that a scheduled task re-runs
+# at startup and on every network connect, so every adapter (also ones that
+# are unplugged now, or added later) and every Wi-Fi network is covered.
+$dir = "$env:ProgramData\anssis"
+New-Item -ItemType Directory -Path $dir -Force | Out-Null
+@"
+`$Server = '$Server'
+foreach (`$a in Get-NetAdapter -Physical) {
+    Set-DnsClientServerAddress -InterfaceIndex `$a.ifIndex -ServerAddresses `$Server
+    `$key = "HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\InterfaceSpecificParameters\`$(`$a.InterfaceGuid)\DohInterfaceSettings\Doh\`$Server"
+    New-Item -Path `$key -Force | Out-Null
+    Set-ItemProperty -Path `$key -Name DohFlags -Type QWord -Value 1
+    Disable-NetAdapterBinding -Name `$a.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue
 }
+Clear-DnsClientCache
+"@ | Set-Content -Path "$dir\apply.ps1" -Encoding UTF8
+
+Write-Host '== every adapter, every network: DNS -> server (DoH), IPv6 off'
+& "$dir\apply.ps1"
+Get-NetAdapter -Physical | ForEach-Object { Write-Host "   $($_.Name) ($($_.Status))" }
+
+$run = "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$dir\apply.ps1`""
+schtasks /Create /F /RU SYSTEM /RL HIGHEST /TN 'anssis-dns-boot' /SC ONSTART /TR $run | Out-Null
+schtasks /Create /F /RU SYSTEM /RL HIGHEST /TN 'anssis-dns-network' /SC ONEVENT `
+    /EC 'Microsoft-Windows-NetworkProfile/Operational' /MO '*[System[EventID=10000]]' /TR $run | Out-Null
+Write-Host '== re-applied automatically at startup and on every network connect'
 
 Write-Host '== browsers: secure DNS locked to this server'
 # Chrome, Edge and Brave read the same policy names; Firefox has its own.
