@@ -12,8 +12,11 @@ if (-not $admin) {
     return
 }
 
-schtasks /Delete /F /TN 'anssis-dns-boot' 2>$null | Out-Null
-schtasks /Delete /F /TN 'anssis-dns-network' 2>$null | Out-Null
+# Not schtasks /Delete: under 'Stop' its stderr for a missing task aborts the
+# whole undo in Windows PowerShell 5.1 (second run, or a setup without tasks).
+foreach ($t in 'anssis-dns-boot', 'anssis-dns-network') {
+    Unregister-ScheduledTask -TaskName $t -Confirm:$false -ErrorAction SilentlyContinue
+}
 Remove-Item "$env:ProgramData\anssis" -Recurse -Force -ErrorAction SilentlyContinue
 foreach ($a in Get-NetAdapter | Where-Object { -not $_.Virtual }) {
     Set-DnsClientServerAddress -InterfaceIndex $a.ifIndex -ResetServerAddresses
@@ -27,6 +30,7 @@ foreach ($p in 'Google\Chrome', 'Microsoft\Edge', 'BraveSoftware\Brave') {
 }
 Remove-Item -Path 'HKLM:\SOFTWARE\Policies\Mozilla\Firefox\DNSOverHTTPS' -Recurse -Force -ErrorAction SilentlyContinue
 Remove-DnsClientDohServerAddress -ServerAddress $Server -ErrorAction SilentlyContinue
+Remove-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Services\Dnscache\Parameters' -Name EnableAutoDoh -ErrorAction SilentlyContinue
 Get-ChildItem Cert:\LocalMachine\Root | Where-Object { $_.Subject -match 'anssis' } | Remove-Item
 Clear-DnsClientCache
 Write-Host 'Undone: this PC uses automatic DNS again.' -ForegroundColor Green

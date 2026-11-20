@@ -52,8 +52,10 @@ Get-NetAdapter -Physical | ForEach-Object { Write-Host "   $($_.Name) ($($_.Stat
 
 $run = "powershell -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File $dir\apply.ps1"
 schtasks /Create /F /RU SYSTEM /RL HIGHEST /TN 'anssis-dns-boot' /SC ONSTART /TR $run | Out-Null
+if ($LASTEXITCODE) { throw 'could not register the scheduled tasks' }
 schtasks /Create /F /RU SYSTEM /RL HIGHEST /TN 'anssis-dns-network' /SC ONEVENT `
     /EC 'Microsoft-Windows-NetworkProfile/Operational' /MO '*[System[EventID=10000]]' /TR $run | Out-Null
+if ($LASTEXITCODE) { throw 'could not register the scheduled tasks' }
 Write-Host '== re-applied automatically at startup and on every network connect'
 
 Write-Host '== browsers: secure DNS locked to this server'
