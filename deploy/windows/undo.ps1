@@ -1,9 +1,9 @@
 # Reverse deploy/windows/setup.ps1: automatic DNS, IPv6 back on, DoH entry
 # and proxy CA removed.
-#   irm https://anssis.51-159-106-197.nip.io/win-undo | iex
+#   irm https://dns.husimi.ai/win-undo | iex
 $ErrorActionPreference = 'Stop'
 $Server = '51.159.106.197'
-$Base = 'https://anssis.51-159-106-197.nip.io'
+$Base = 'https://dns.husimi.ai'
 
 $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
          ).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)

@@ -1,12 +1,12 @@
 # Point this Windows 11 PC at the anssiscanvdns resolver over DNS-over-HTTPS.
-#   irm https://anssis.51-159-106-197.nip.io/win | iex
+#   irm https://dns.husimi.ai/win | iex
 # Registers the DoH template, sets every active adapter's DNS to the server
 # (one setting per adapter, so it covers every Wi-Fi network), turns IPv6 off
 # on those adapters so lookups cannot bypass the blocker, and trusts the proxy
 # CA (name-constrained to the intercepted domains). Undo: .../win-undo
 $ErrorActionPreference = 'Stop'
 $Server = '51.159.106.197'
-$Base = 'https://anssis.51-159-106-197.nip.io'
+$Base = 'https://dns.husimi.ai'
 $Template = "$Base/dns-query"
 
 $admin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
