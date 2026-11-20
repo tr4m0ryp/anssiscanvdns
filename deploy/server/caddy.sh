@@ -31,7 +31,8 @@ $PUBLIC_HOST {
 		header Content-Type application/x-x509-ca-cert
 		file_server
 	}
-	handle /win /win-undo {
+	@win path /win /win-undo
+	handle @win {
 		root * $ETC/public
 		header Content-Type "text/plain; charset=utf-8"
 		file_server
