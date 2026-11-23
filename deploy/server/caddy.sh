@@ -19,6 +19,9 @@ if [ ! -f "$ETC/admin.hash" ]; then
   chmod 600 "$ETC/admin.hash"
   echo "ADMIN_PASSWORD (user anssis): $PW"
 fi
+# The access log must exist and belong to caddy before `caddy validate` (run
+# as root) would create it root-owned, which makes the reload fail.
+[ -f /var/log/caddy/anssis-access.log ] || install -o caddy -g caddy -m 644 /dev/null /var/log/caddy/anssis-access.log
 SITES="$(python3 -c 'import json,sys; print(", ".join(f"{h}, *.{h}" for h in json.load(open(sys.argv[1]))["hosts"]))' "$ROOT/rules/http.json")"
 
 NEW=/etc/caddy/anssis.caddy.new
