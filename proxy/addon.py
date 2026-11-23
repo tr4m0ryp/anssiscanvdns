@@ -18,7 +18,7 @@ from mitmproxy import http
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from anssis import Rules, drop_json, inject, record  # noqa: E402
+from anssis import Rules, device_label, drop_json, inject, record  # noqa: E402
 
 TYPES = {"html": "text/html", "json": "json", "js": "javascript", "css": "text/css", "text": "text/"}
 
@@ -37,6 +37,13 @@ class Anssis:
             # the box never acts as an open relay.
             flow.response = http.Response.make(421, b"anssiscanvdns: host not intercepted\n")
             return
+        # Who sent it: Caddy's X-Forwarded-For holds the device's IP. Kept for
+        # the action log only, then stripped with the other forwarding headers.
+        who = {
+            "client": (req.headers.get("x-forwarded-for") or "").split(",")[0].strip(),
+            "device": device_label(req.headers.get("user-agent", "")),
+        }
+        flow.metadata["anssis_who"] = who
         # Caddy's forwarding headers would reveal the proxy to the real site.
         for h in ("x-forwarded-for", "x-forwarded-proto", "x-forwarded-host", "via"):
             req.headers.pop(h, None)
@@ -46,12 +53,12 @@ class Anssis:
 
         for rule in rs.matching("block", host, req.method, req.path):
             flow.response = http.Response.make(rule.status, b"", {"Cache-Control": "no-store"})
-            record("block", host, req.path, rule.note)
+            record("block", host, req.path, rule.note, **who)
             return
         for rule in rs.matching("redirect", host, req.method, req.path):
             if req.path != rule.to:
                 flow.response = http.Response.make(302, b"", {"Location": rule.to, "Cache-Control": "no-store"})
-                record("redirect", host, req.path, rule.note)
+                record("redirect", host, req.path, rule.note, **who)
                 return
 
     def responseheaders(self, flow: http.HTTPFlow) -> None:
@@ -66,6 +73,7 @@ class Anssis:
             return
         rs = self.rules.current()
         req, resp = flow.request, flow.response
+        who = flow.metadata.get("anssis_who", {})
         ctype = resp.headers.get("content-type", "").lower()
 
         for rule in rs.matching("replace", req.host, req.method, req.path):
@@ -77,7 +85,7 @@ class Anssis:
             new, n = rule.find.subn(rule.repl, text)
             if n:
                 resp.set_text(new)
-                record("replace", req.host, req.path, f"{rule.note} ({n}x)")
+                record("replace", req.host, req.path, f"{rule.note} ({n}x)", **who)
 
         if "json" in ctype:
             for rule in rs.matching("drop", req.host, req.method, req.path):
@@ -85,12 +93,12 @@ class Anssis:
                 new, n = drop_json(text or "", rule.drop)
                 if n:
                     resp.set_text(new)
-                    record("drop", req.host, req.path, f"{rule.note} ({n} items)")
+                    record("drop", req.host, req.path, f"{rule.note} ({n} items)", **who)
 
         # Scripts go only into the exact configured host (as the extension's
         # match patterns did), not into subdomains such as the login portal.
         if req.host == site and inject(flow, rs.bundles.get(site, "")):
-            record("inject", req.host, req.path)
+            record("inject", req.host, req.path, **who)
 
 
 addons = [Anssis()]
