@@ -10,7 +10,8 @@
   const frozen = courses.filter((c) => c.marks);
   const path = location.pathname;
 
-  // Each course's Discussions entries and frozen marks on every page, the
+  // Announcements, each governed course's Discussions entries and frozen marks
+  // on every page, the
   // dashboard included.
   injectStyle(H.globalCss(courses) + M.css.global(frozen));
   M.runFeedback(frozen);
