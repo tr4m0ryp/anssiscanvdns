@@ -14,5 +14,5 @@ block sis.uva.nl
 # is not possible over DNS.
 block x.com
 
-# ANS fully blocked (2026-11-20): whole domain, replaces the per-course redirect.
-block ans.uva.nl
+# ANS reopened (2026-11-23 23:00): proxied via rules/http.json, where every
+# results URL is blocked except two.
