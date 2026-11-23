@@ -11,8 +11,7 @@
   const path = location.pathname;
 
   // Announcements, each governed course's Discussions entries and frozen marks
-  // on every page, the
-  // dashboard included.
+  // on every page, the dashboard included.
   injectStyle(H.globalCss(courses) + M.css.global(frozen));
   M.runFeedback(frozen);
 
