@@ -1,6 +1,5 @@
-// Same-origin Canvas API access: refreshes the cached announcement and
-// discussion ids for the course, and looks up a single topic's announcement
-// flag. Same-origin fetches send the Canvas session cookie automatically. Canvas may prefix JSON with an anti-JSON guard.
+// Same-origin Canvas API access: refreshes the cached discussion ids for the
+// course, and looks up a single topic's announcement flag. Same-origin fetches send the Canvas session cookie automatically. Canvas may prefix JSON with an anti-JSON guard.
 var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 
 CanvasHide.api = (function () {
@@ -28,11 +27,9 @@ CanvasHide.api = (function () {
 
   return {
     json,
-    // All announcement ids in the course, refreshed into storage.
-    refreshAnnouncementIds: () => refreshIds("only_announcements=true&", CanvasHide.keys.annIds),
     // All discussion ids in the course, refreshed into storage.
     refreshDiscussionIds: () => refreshIds("", CanvasHide.keys.discIds),
-    // Whether a single topic is an announcement (used when the id is not cached).
+    // Whether a single topic is an announcement.
     // null means unknown (request failed), so callers can decide how to fail.
     async isAnnouncement(topicId) {
       const id = CanvasHide.course.id;

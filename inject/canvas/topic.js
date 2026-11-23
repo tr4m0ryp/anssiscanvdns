@@ -1,13 +1,16 @@
 // A single discussion/announcement page (/courses/<id>/discussion_topics/<tid>).
 // Content is held invisible by CSS (data-cvh-topic="pending", set before paint).
-// Only an announcement that is in the allow-set is revealed. Everything else is
-// blocked and never shown: announcements outside the To-do list, and every
-// normal discussion, since the Discussions section is blocked entirely.
+// Announcements are never shown, in any course. In a governed course every
+// topic is blocked, since its Discussions section is blocked entirely; in any
+// other course a plain discussion is revealed once the API confirms it is not
+// an announcement. A failed lookup blocks (fail closed).
 var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 
-CanvasHide.runTopic = function (tid) {
-  const { keys, store, api, sel } = CanvasHide;
+// Returns { cancel } so main.js can hand the page over to the governed path.
+CanvasHide.runTopic = function (tid, governed) {
+  const { api, sel } = CanvasHide;
   const root = document.documentElement;
+  let cancelled = false;
 
   const reveal = () => root.setAttribute("data-cvh-topic", "ok");
 
@@ -28,19 +31,16 @@ CanvasHide.runTopic = function (tid) {
   };
 
   (async () => {
-    const [allow, annIds, discIds] = await Promise.all([
-      store.get(keys.allow),
-      store.get(keys.annIds),
-      store.get(keys.discIds),
-    ]);
-    // true / false, or null when the lookup failed. Cached ids skip the fetch.
-    const isAnn =
-      annIds.includes(tid) || (discIds.includes(tid) ? false : await api.isAnnouncement(tid));
-    if (isAnn !== false && allow.includes(tid)) return reveal();
+    // true / false, or null when the lookup failed.
+    const isAnn = await api.isAnnouncement(tid);
+    if (cancelled) return;
+    if (isAnn === false && !governed) return reveal();
     return block(
       isAnn === false
         ? "Deze discussie is niet beschikbaar."
         : "Deze aankondiging is niet beschikbaar."
     );
   })();
+
+  return { cancel: () => (cancelled = true) };
 };

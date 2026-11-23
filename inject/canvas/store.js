@@ -1,5 +1,5 @@
-// Thin async wrappers over chrome.storage.local for the allow-set (To-do ids)
-// and the set of all announcement ids. Values are stored as arrays of strings.
+// Thin async wrappers over chrome.storage.local for the cached id lists
+// (discussion ids, marks allow-set). Values are stored as arrays of strings.
 var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 
 CanvasHide.store = {
@@ -20,15 +20,5 @@ CanvasHide.store = {
         res();
       }
     });
-  },
-  // Fires cb(newAllow) whenever the allow-set changes in any tab.
-  onAllowChange(cb) {
-    try {
-      chrome.storage.onChanged.addListener((ch, area) => {
-        if (area === "local" && ch[CanvasHide.keys.allow]) {
-          cb(ch[CanvasHide.keys.allow].newValue || []);
-        }
-      });
-    } catch (_) {}
-  },
+  }
 };

@@ -1,8 +1,8 @@
 // Entry point (runs last). Resolves which governed course the page belongs to,
 // injects the pre-paint hiding CSS, then routes to the handlers for the page.
-// Every course: announcements hidden outside the To-do list, the Discussions
-// section blocked (pages redirect, links hide). A course with `marks` also
-// gets the marks freeze.
+// Every course: announcements hidden everywhere, To-do list included. Governed
+// courses: the Discussions section blocked too (pages redirect, links hide). A
+// course with `marks` also gets the marks freeze.
 (function () {
   const H = globalThis.CanvasHide;
   const { courses, injectStyle, topicId } = H;
@@ -21,8 +21,14 @@
   const isTopic = /\/courses\/\d+\/discussion_topics\/\d+/.test(path);
   // Discussions index (and /new etc.): the whole section is blocked.
   const isDiscussions = !isTopic && /\/courses\/\d+\/discussion_topics(\/|$)/.test(path);
-  const isIndex = /\/courses\/\d+\/announcements\/?$/.test(path);
   const tid = topicId(path);
+
+  // A topic page may be an announcement in any course: hold its content
+  // invisible before paint until topic.js decides.
+  const holdTopic = () => {
+    document.documentElement.setAttribute("data-cvh-topic", "pending");
+    injectStyle(H.buildCss().topic);
+  };
 
   const apply = (course) => {
     H.useCourse(course);
@@ -33,8 +39,8 @@
       injectStyle(css.base + css.leaving);
       return location.replace(`/courses/${urlId}`);
     }
-    // Base hiding (home block, nav tabs, discussion links) on every course page.
-    let sheet = css.base + (isIndex ? css.index : "");
+    // Base hiding (Discussions tab and links) on every course page.
+    let sheet = css.base;
     if (isTopic && tid) {
       document.documentElement.setAttribute("data-cvh-topic", "pending");
       sheet += css.topic;
@@ -45,14 +51,22 @@
 
     H.runDiscussionLinks();
     M.runPage(course, marks);
-    if (isTopic && tid) H.runTopic(tid);
-    else if (isIndex) H.runIndex();
-    else H.runHome();
+    if (isTopic && tid) H.runTopic(tid, true);
   };
 
   // Fast path: known course id, act immediately with no DOM dependency.
   const known = courses.find((c) => c.id === urlId);
   if (known) return apply(known);
+
+  // Any other course: only its announcements are hidden. A topic page is held
+  // and checked; if the course turns out to be governed (new id), apply()
+  // takes over and the topic is blocked outright.
+  let ungoverned = null;
+  if (isTopic && tid) {
+    holdTopic();
+    H.useCourse({ id: urlId });
+    ungoverned = H.runTopic(tid, false);
+  }
 
   // Unknown id: identify the course by its unique code (or name) in the page
   // title and breadcrumbs before touching anything. Not the whole body, which
@@ -62,7 +76,10 @@
     const t = document.title + " " + (crumbs ? crumbs.textContent : "");
     const course = courses.find((c) => c.codeRe.test(t) || c.nameRe.test(t));
     // Use the live id, so API calls and storage keys follow the new course.
-    if (course) apply({ ...course, id: urlId });
+    if (course) {
+      if (ungoverned) ungoverned.cancel();
+      apply({ ...course, id: urlId });
+    }
   };
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", confirm, { once: true });
