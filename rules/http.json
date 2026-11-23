@@ -13,8 +13,6 @@
         "canvas/marks/grades.js",
         "canvas/marks/pages.js",
         "canvas/marks/index.js",
-        "canvas/home.js",
-        "canvas/index_page.js",
         "canvas/topic.js",
         "canvas/discussions.js",
         "canvas/main.js"
@@ -45,6 +43,27 @@
       "host": "canvas.uva.nl",
       "path": "^/api/",
       "match": "(course_|/courses/)(59995|59697)\\b|\"course_?[iI]d\":\\s*\"?(59995|59697)\\b|5062STRE6Y|5092LAVN6Y|Statistisch Redeneren|Lineaire algebra voor Natuur"
+    },
+    {
+      "note": "Announcements, every course: the Announcements index bounces to the dashboard",
+      "action": "redirect",
+      "host": "canvas.uva.nl",
+      "path": "^/courses/\\d+/announcements(/|$|\\?|#)",
+      "to": "/"
+    },
+    {
+      "note": "Announcements, every course: the announcements API answers 404",
+      "action": "block",
+      "host": "canvas.uva.nl",
+      "path": "^/api/v1/announcements(/|$|\\?)",
+      "status": 404
+    },
+    {
+      "note": "Announcements, every course: dropped from every API list (To-do, planner, activity stream, topic lists, GraphQL)",
+      "action": "drop",
+      "host": "canvas.uva.nl",
+      "path": "^/api/",
+      "match": "\"plannable_type\":\\s*\"announcement\"|\"is_announcement\":\\s*true|\"isAnnouncement\":\\s*true|\"type\":\\s*\"Announcement\""
     },
     {
       "note": "github.com/tr4m0ryp profile page blocked (self). Only the exact profile path, not /tr4m0ryp/<repo>, so repos and the sync keep working.",
