@@ -1,4 +1,4 @@
-"""HTML for the admin page: file list, editor, recent proxy actions, git log."""
+"""HTML for the admin page: file list, editor, devices, recent proxy actions, git log."""
 
 from html import escape
 from urllib.parse import quote
@@ -23,7 +23,9 @@ pre{font:12px ui-monospace,monospace;margin:0}
 """
 
 
-def render(files: list[str], current: str, text: str, msg: str, events: list[dict], log: str) -> str:
+def render(
+    files: list[str], current: str, text: str, msg: str, events: list[dict], log: str, devs: list[dict]
+) -> str:
     nav = "".join(
         f'<a href="/?f={quote(f)}" class="{"on" if f == current else ""}">{escape(f)}</a>' for f in files
     )
@@ -33,8 +35,14 @@ def render(files: list[str], current: str, text: str, msg: str, events: list[dic
         note = f'<div class="{cls}">{escape(msg)}</div>'
     rows = "".join(
         f"<tr><td>{escape(e['t'])}</td><td>{escape(e['action'])}</td>"
+        f"<td>{escape(e.get('device') or '')} {escape(e.get('client') or '')}</td>"
         f"<td>{escape(e['host'])}{escape(e['path'])}</td><td>{escape(e.get('note', ''))}</td></tr>"
         for e in events
+    )
+    dev_rows = "".join(
+        f"<tr><td>{escape(d['last'])}</td><td>{escape(d['device'])}</td><td>{escape(d['ip'])}</td>"
+        f"<td>{escape(d['counts'])}</td><td>since {escape(d['first'])}</td></tr>"
+        for d in devs
     )
     return f"""<!doctype html><html><head><meta charset="utf-8">
 <title>anssiscanvdns</title><style>{STYLE}</style></head><body>
@@ -44,6 +52,7 @@ def render(files: list[str], current: str, text: str, msg: str, events: list[dic
 <div><b>{escape(current)}</b></div>
 <textarea name="content" spellcheck="false">{escape(text)}</textarea>
 <button>Save and push</button></form>
+<h2>Devices (last active, device, IP, requests)</h2><table>{dev_rows or "<tr><td>none yet</td></tr>"}</table>
 <h2>Recent proxy actions</h2><table>{rows or "<tr><td>none yet</td></tr>"}</table>
 <h2>Recent commits</h2><pre>{escape(log)}</pre>
 </main></body></html>"""

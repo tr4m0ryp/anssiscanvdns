@@ -26,6 +26,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from anssis.events import tail  # noqa: E402
 from gen_dnsmasq import dns_lines  # noqa: E402
 
+from devices import devices  # noqa: E402
 from page import render  # noqa: E402
 
 EDITABLE_DIRS = ("rules", "inject")
@@ -99,7 +100,7 @@ class Handler(BaseHTTPRequestHandler):
         if path is None:
             return self.send_error(404)
         msg = q.get("msg", [""])[0]
-        self._send(render(editable(), rel, path.read_text(encoding="utf-8"), msg, tail(80), git("log", "--oneline", "-8")))
+        self._send(render(editable(), rel, path.read_text(encoding="utf-8"), msg, tail(80), git("log", "--oneline", "-8"), devices()))
 
     def do_POST(self) -> None:
         if not self._guard():

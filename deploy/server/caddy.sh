@@ -2,6 +2,8 @@
 # Wire the public side into the existing Caddy: the DoH endpoint, the CA
 # download, the password-protected editor, and TLS for the proxied hosts.
 # The editor password is generated once and printed; keep it somewhere safe.
+# Both sites write a JSON access log (client IP, User-Agent, host, path; Caddy
+# redacts cookies) that the editor's Devices table reads.
 set -eu
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
