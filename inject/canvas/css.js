@@ -7,26 +7,26 @@ var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 CanvasHide.hideRules = (...list) => list.map((x) => `${x} { display: none !important; }`).join("\n");
 CanvasHide.courseHref = (course) => `[href*='/courses/${course.id}/']`;
 
-// Every Canvas page (dashboard included): each course's Discussions entries.
+// Every Canvas page (dashboard included): announcements of every course, and
+// each governed course's Discussions entries.
 CanvasHide.globalCss = function (courses) {
   const s = CanvasHide.sel;
-  return courses
-    .map((c) => {
-      const href = CanvasHide.courseHref(c);
-      return CanvasHide.hideRules(s.discCard + href, `${s.discTodo}:has(a${href})`);
-    })
-    .join("\n");
+  const ann = CanvasHide.hideRules(
+    s.annRecent, s.annNav, `:is(${s.annIndexLink})`, s.annCard, s.annStream, s.annTodo, s.annPlanner
+  );
+  const disc = courses.map((c) => {
+    const href = CanvasHide.courseHref(c);
+    return CanvasHide.hideRules(s.discCard + href, `${s.discTodo}:has(a${href})`);
+  });
+  return [ann, ...disc].join("\n");
 };
 
 // Sheets for pages inside the matched course.
 CanvasHide.buildCss = function () {
   const s = CanvasHide.sel;
-  // Always-on: home block, Announcements and Discussions tabs, and every link
-  // or row that leads into the Discussions section.
-  const base = `
-    ${s.recentBlock} { display: none !important; }
-    #section-tabs li:has(${s.navTab}) { display: none !important; }
-  ` + CanvasHide.hideRules(
+  // Always-on: the Discussions tab and every link or row that leads into the
+  // Discussions section.
+  const base = CanvasHide.hideRules(
     s.discNav,
     `:is(${s.discIndexLink})`,
     s.discModuleItem,
@@ -34,11 +34,7 @@ CanvasHide.buildCss = function () {
     s.discTodo,
     ".cvh-hide"
   );
-  // Announcements index: hide every row; only rows we mark .cvh-show appear.
-  const index = `
-    ${s.annRow}:not(.cvh-show) { display: none !important; }
-  `;
-  // Announcement page: keep content invisible until we decide allow/block.
+  // Topic page: keep content invisible until we decide reveal/block.
   // visibility (not display) preserves layout, so the reveal is seamless.
   const topic = `
     html[data-cvh-topic="pending"] ${s.content} { visibility: hidden !important; }
@@ -47,7 +43,7 @@ CanvasHide.buildCss = function () {
   const leaving = `
     ${s.content} { visibility: hidden !important; }
   `;
-  return { base, index, topic, leaving };
+  return { base, topic, leaving };
 };
 
 CanvasHide.injectStyle = function (cssText) {

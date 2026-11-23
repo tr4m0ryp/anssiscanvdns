@@ -2,8 +2,9 @@
 // Content scripts are not ES modules, so state is shared via a global.
 var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 
-// Every course gets announcement hiding and the Discussions block. A course
-// with `marks` also gets the marks freeze (see src/canvas/marks/).
+// Announcements are hidden in every course (see css.js and topic.js). The
+// governed courses below also get the Discussions block, and a course with
+// `marks` also gets the marks freeze (see src/canvas/marks/).
 CanvasHide.courses = [
   {
     // Primary match: the course id in the URL (/courses/<id>/...). Fallbacks
@@ -41,12 +42,14 @@ CanvasHide.hidden = [
 CanvasHide.course = null;
 
 CanvasHide.sel = {
-  recentBlock: "#announcements_on_home_page",       // course home "Recente aankondigingen"
-  navTab: "#aankondigingen-link",                   // left-nav Announcements link (stable id)
-  todoLinks: ".todo-list a[href*='discussion_topics'], .Sidebar__TodoListContainer a[href*='discussion_topics']",
-  todoContainer: ".todo-list, .Sidebar__TodoListContainer",
-  annRow: ".ic-announcement-row",                   // a row on the Announcements index
-  annRowLink: "a[href*='discussion_topics']",       // the row's link to the announcement
+  // Announcements, hidden on every page of every course.
+  annRecent: "#announcements_on_home_page",         // course home "Recente aankondigingen"
+  annNav: "#section-tabs li:has(> a.announcements), #section-tabs li:has(#aankondigingen-link)",
+  annIndexLink: "a[href$='/announcements'], a[href$='/announcements/'], a[href*='/announcements?']",
+  annCard: ".ic-DashboardCard__action.announcements", // dashboard card icon + unread count
+  annStream: ".stream-announcement",                 // dashboard "Recent activity"
+  annTodo: "li:has(> .ToDoSidebarItem svg[name^='IconAnnouncement'])",
+  annPlanner: "[class*='PlannerItem']:has(svg[name^='IconAnnouncement'])",
   content: "#content",
   // Discussions section (blocked entirely). Announcements share the
   // /discussion_topics/<id> URL shape, so only index links and typed rows are
@@ -63,8 +66,6 @@ CanvasHide.sel = {
 
 // Storage keys, namespaced per course so courses never collide.
 CanvasHide.keysFor = (course) => ({
-  allow: "cvh_allow_" + course.id,          // ids currently in the To-do list
-  annIds: "cvh_annids_" + course.id,        // ids of all announcements in the course
   discIds: "cvh_discids_" + course.id,      // ids of all discussions in the course
   marksAllow: "cvh_marksallow_" + course.id, // assignment ids whose marks may show
 });
