@@ -32,9 +32,21 @@
     },
     "github.com": {
       "inject": []
+    },
+    "sis.uva.nl": {
+      "inject": []
     }
   },
   "rules": [
+    {
+      "note": "SIS frozen whole-site: recorded from live visits until capture_until, then sealed (snapshot or refusal, never the real SIS)",
+      "action": "freeze",
+      "host": "sis.uva.nl",
+      "path": "^/",
+      "site": true,
+      "capture_until": "2026-11-24T12:20:00Z",
+      "volatile": "(?i)^(ICStateNum|ICSID|ICElementNum|ICResubmit|ICAJAXTrf|ICBcDomData|SAMLResponse|SAMLRequest|RelayState|Signature|SigAlg|_|nonce|state|cmd_ts)$"
+    },
     {
       "note": "VenV-1 grades frozen: the page and every request it makes are answered from the first snapshot, never refreshed",
       "action": "freeze",
