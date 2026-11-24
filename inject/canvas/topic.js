@@ -61,7 +61,17 @@ CanvasHide.runTopic = function (tid, governed) {
     const mode = CanvasHide.course.discussions;
     const showDisc =
       t && !t.announcement && (!governed || mode === "open" || (mode === "pinned" && !t.pinned));
-    if (showDisc) return reveal();
+    if (showDisc) {
+      // A course with discussionDelay holds each discussion on the spinner.
+      const delay = CanvasHide.course.discussionDelay;
+      if (delay) {
+        const spinner = CanvasHide.loadingForever();
+        await new Promise((r) => setTimeout(r, delay * 1000));
+        if (cancelled) return;
+        spinner.remove();
+      }
+      return reveal();
+    }
     return block(
       t && !t.announcement
         ? "Deze discussie is niet beschikbaar."

@@ -32,6 +32,8 @@ CanvasHide.courses = [
     discussions: "open",
     // Topics that open only after a long fake load (seconds), per page load.
     slowTopics: { "1105288": 600 },
+    // Every plain discussion opens only after this fake load (seconds).
+    discussionDelay: 600,
     // Fixed unread count drawn on its dashboard Announcements icon.
     annBadge: 3,
     nameRe: /waarnemen,?\s*denken,?\s*doen\s*-\s*1/i,
