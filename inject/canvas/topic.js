@@ -41,13 +41,21 @@ CanvasHide.runTopic = function (tid, governed) {
   }
 
   (async () => {
+    // A slow topic sits on the spinner for its delay, then opens as usual.
+    const slow = (CanvasHide.course.slowTopics || {})[tid];
+    if (slow) {
+      const spinner = CanvasHide.loadingForever();
+      await new Promise((r) => setTimeout(r, slow * 1000));
+      spinner.remove();
+    }
     const t = await api.topic(tid);
     if (cancelled) return;
     // Plain discussion: shown outside governed courses, and in a pinned-only
     // course unless it is pinned. Everything else (announcements, failed
     // lookups) is blocked.
-    const pinnedOnly = CanvasHide.course.discussions === "pinned";
-    const showDisc = t && !t.announcement && (!governed || (pinnedOnly && !t.pinned));
+    const mode = CanvasHide.course.discussions;
+    const showDisc =
+      t && !t.announcement && (!governed || mode === "open" || (mode === "pinned" && !t.pinned));
     if (showDisc) return reveal();
     return block(
       t && !t.announcement
@@ -59,11 +67,11 @@ CanvasHide.runTopic = function (tid, governed) {
   return { cancel: () => (cancelled = true) };
 };
 
-// Canvas-style spinner over the (still hidden) content, never resolved.
+// Canvas-style spinner over the (still hidden) content; remove() ends it.
 CanvasHide.loadingForever = function () {
+  const el = document.createElement("div");
   const show = () => {
     if (!document.body) return document.addEventListener("DOMContentLoaded", show, { once: true });
-    const el = document.createElement("div");
     el.setAttribute("role", "progressbar");
     el.setAttribute("aria-label", "Laden");
     el.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;pointer-events:none";
@@ -74,4 +82,5 @@ CanvasHide.loadingForever = function () {
     document.body.appendChild(el);
   };
   show();
+  return { remove: () => el.remove() };
 };

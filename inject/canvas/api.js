@@ -18,9 +18,10 @@ CanvasHide.api = (function () {
     try {
       // cvh=1 lets this lookup past the proxy's discussion filter.
       const list = await json(`/api/v1/courses/${id}/discussion_topics?${query}per_page=100&cvh=1`);
-      // A pinned-only course blocks just its pinned discussions.
-      const pinnedOnly = CanvasHide.course.discussions === "pinned" && !query;
-      const ids = list.filter((a) => !pinnedOnly || a.pinned).map((a) => String(a.id));
+      // Discussion ids to hide: all, only pinned ones, or none ("open").
+      const mode = query ? "" : CanvasHide.course.discussions;
+      const keep = (a) => (mode === "open" ? false : mode === "pinned" ? a.pinned : true);
+      const ids = list.filter(keep).map((a) => String(a.id));
       await CanvasHide.store.set(key, ids);
       return ids;
     } catch (_) {

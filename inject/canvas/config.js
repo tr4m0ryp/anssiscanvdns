@@ -4,8 +4,8 @@ var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 
 // Announcements are hidden in every course (see css.js and topic.js), except
 // the ids in a course's `annAllow`. The governed courses below also get the
-// Discussions block (whole section, or only pinned ones with
-// `discussions: "pinned"`), and a course with `marks` also gets the marks freeze
+// Discussions block (whole section; only pinned ones with
+// `discussions: "pinned"`; none with `discussions: "open"`), and a course with `marks` also gets the marks freeze
 // (see src/canvas/marks/). annAllow must match the ids in rules/http.json.
 CanvasHide.courses = [
   {
@@ -25,8 +25,10 @@ CanvasHide.courses = [
     // Listed, but opening it shows an endless loading screen (Indienen
     // bezwaren Deeltoets cohort 1).
     annLoading: ["1177553"],
-    // Discussions section open; only pinned ("Vastgezette") discussions hidden.
-    discussions: "pinned",
+    // Discussions section open, pinned ("Vastgezette") discussions included.
+    discussions: "open",
+    // Topics that open only after a long fake load (seconds), per page load.
+    slowTopics: { "1105288": 600 },
     // Fixed unread count drawn on its dashboard Announcements icon.
     annBadge: 3,
     nameRe: /waarnemen,?\s*denken,?\s*doen\s*-\s*1/i,

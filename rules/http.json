@@ -77,13 +77,6 @@
       "match": "\"is_announcement\":\\s*false"
     },
     {
-      "note": "WDD-1: pinned discussions (Vastgezette discussies) dropped from its topic lists; the scripts' own id lookups (cvh=1) pass through",
-      "action": "drop",
-      "host": "canvas.uva.nl",
-      "path": "^/api/v1/courses/59300/discussion_topics(?![^#]*cvh=1)",
-      "match": "^(?=[\\s\\S]*\"is_announcement\":\\s*false)(?=[\\s\\S]*\"pinned\":\\s*true)"
-    },
-    {
       "note": "Announcements index bounces to the dashboard in every course except WDD-1 (59300), whose index shows only its allowed announcements",
       "action": "redirect",
       "host": "canvas.uva.nl",

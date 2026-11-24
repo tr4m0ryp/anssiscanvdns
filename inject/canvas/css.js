@@ -12,7 +12,7 @@ CanvasHide.courseHref = (course) => `[href*='/courses/${course.id}/']`;
 // To-do and planner rows, and a course with allowed ones keeps its
 // Announcements tab, home block and index links (see annPageCss).
 CanvasHide.globalCss = function (courses) {
-  const full = courses.filter((c) => c.discussions !== "pinned");
+  const full = courses.filter((c) => !c.discussions);
   const s = CanvasHide.sel;
   const keep = CanvasHide.annAllowIds.map((id) => `:not(:has(a[href*='discussion_topics/${id}']))`).join("");
   const keepCourses = courses
@@ -42,7 +42,7 @@ CanvasHide.buildCss = function () {
   const s = CanvasHide.sel;
   // Always-on (pinned-only course: just the pinned links, .cvh-hide): the Discussions tab and every link or row that leads into the
   // Discussions section.
-  const base = CanvasHide.course.discussions === "pinned"
+  const base = CanvasHide.course.discussions
     ? CanvasHide.hideRules(".cvh-hide")
     : CanvasHide.hideRules(
     s.discNav,
