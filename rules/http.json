@@ -35,6 +35,9 @@
     },
     "sis.uva.nl": {
       "inject": []
+    },
+    "student.uva.nl": {
+      "inject": []
     }
   },
   "rules": [
@@ -46,6 +49,13 @@
       "site": true,
       "capture_until": "2026-11-24T12:20:00Z",
       "volatile": "(?i)^(ICStateNum|ICSID|ICElementNum|ICResubmit|ICAJAXTrf|ICBcDomData|SAMLResponse|SAMLRequest|RelayState|Signature|SigAlg|_|nonce|state|cmd_ts)$"
+    },
+    {
+      "note": "student.uva.nl Studieresultaten frozen: the page and its GraphQL data are answered from the first good snapshot, never refreshed",
+      "action": "freeze",
+      "host": "student.uva.nl",
+      "path": "^/studieresultaten(/|\\?|$)",
+      "referer": "^https://student\\.uva\\.nl/studieresultaten(/|\\?|#|$)"
     },
     {
       "note": "VenV-1 grades frozen: the page and every request it makes are answered from the first snapshot, never refreshed",

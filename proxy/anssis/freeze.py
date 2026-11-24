@@ -5,7 +5,7 @@ their Referer. The first 200 answer to each such request (keyed by method,
 path and, for POSTs, a hash of the body) is written to the state directory;
 every later request is answered from that file and never reaches the real
 site, so the page shows no data newer than the snapshot. Only GETs and
-GraphQL POSTs are frozen, never writes. Set-Cookie is not replayed.
+GraphQL POSTs are frozen, never writes, and never an error answer. Set-Cookie is not replayed.
 """
 
 import hashlib
@@ -21,7 +21,15 @@ SKIP_HEADERS = {"set-cookie", "content-length", "content-encoding", "transfer-en
 
 
 def freezable(method: str, path: str) -> bool:
-    return method == "GET" or (method == "POST" and path.startswith("/api/graphql"))
+    return method == "GET" or (method == "POST" and "graphql" in path.split("?")[0])
+
+
+def keepable(body: bytes, ctype: str) -> bool:
+    """An error answer (not logged in, GraphQL errors) is never frozen."""
+    if "json" not in ctype:
+        return True
+    head = (body or b"")[:4000].lower()
+    return b'"errors"' not in head and b"unauthenticated" not in head and b"unauthorized" not in head
 
 
 def key(host: str, method: str, path: str, body: bytes) -> str:

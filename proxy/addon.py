@@ -132,8 +132,9 @@ class Anssis:
         k = flow.metadata.get("anssis_frozen")
         # A frozen site also keeps redirects (login hops), never errors.
         ok = resp.status_code == 200 or (flow.metadata.get("anssis_site_freeze") and resp.status_code < 400)
-        if k and k != "served" and ok:
-            freeze.save(k, req.path, resp.status_code, list(resp.headers.items(multi=True)), resp.get_content() or b"")
+        body = resp.get_content() or b""
+        if k and k != "served" and ok and freeze.keepable(body, ctype):
+            freeze.save(k, req.path, resp.status_code, list(resp.headers.items(multi=True)), body)
             record("freeze", req.host, req.path, "snapshot taken", **who)
 
         for rule in rs.matching("replace", req.host, req.method, req.path):
