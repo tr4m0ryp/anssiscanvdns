@@ -10,8 +10,11 @@
 # SIS fully blocked (2026-11-07)
 block sis.uva.nl
 
-# Self-block of own social profiles: x.com and www.instagram.com are proxied
-# (rules/http.json) so only the tr4m0ryp profile and its content are blocked.
+# Self-block of own social profiles. Whole x.com for now: the profile-only
+# block (rules/http.json, switched off) needs every device to trust
+# ca-social.crt first. To switch it on: drop this line, turn those rules on,
+# and add x.com and www.instagram.com back to "hosts".
+block x.com
 
 # ANS reopened (2026-11-23 23:00): proxied via rules/http.json, where every
 # results URL is blocked except two.

@@ -30,16 +30,6 @@
     },
     "github.com": {
       "inject": []
-    },
-    "x.com": {
-      "inject": [
-        "social/guard.js"
-      ]
-    },
-    "www.instagram.com": {
-      "inject": [
-        "social/guard.js"
-      ]
     }
   },
   "rules": [
@@ -118,7 +108,8 @@
       "action": "redirect",
       "host": "x.com",
       "path": "(?i)^/tr4m0ryp(/|\\?|#|$)",
-      "to": "/i/notfound_404_page"
+      "to": "/i/notfound_404_page",
+      "off": true
     },
     {
       "note": "X self-block: profile lookups for tr4m0ryp answer as a nonexistent account",
@@ -127,7 +118,8 @@
       "path": "^/(i/api|graphql|1\\.1|2)/",
       "request": "(?i)\"screen_?name\"\\s*:\\s*\"tr4m0ryp\"|screen_name=tr4m0ryp\\b",
       "status": 200,
-      "body": "{\"data\":{}}"
+      "body": "{\"data\":{}}",
+      "off": true
     },
     {
       "note": "X self-block: tweets, replies, mentions and user rows of tr4m0ryp dropped from timelines, search and lists",
@@ -140,14 +132,16 @@
         "moduleItems",
         "users",
         "items"
-      ]
+      ],
+      "off": true
     },
     {
       "note": "Instagram self-block: tr4m0ryp profile and stories pages go to Instagram's not-found page",
       "action": "redirect",
       "host": "www.instagram.com",
       "path": "(?i)^/(stories/)?tr4m0ryp(/|\\?|#|$)",
-      "to": "/p/notfound404/"
+      "to": "/p/notfound404/",
+      "off": true
     },
     {
       "note": "Instagram self-block: profile info for tr4m0ryp answers as user not found",
@@ -156,7 +150,8 @@
       "path": "^/api/v1/users/web_profile_info/",
       "request": "(?i)username=tr4m0ryp\\b",
       "status": 404,
-      "body": "{\"message\":\"User not found\",\"status\":\"fail\"}"
+      "body": "{\"message\":\"User not found\",\"status\":\"fail\"}",
+      "off": true
     },
     {
       "note": "Instagram self-block: GraphQL queries for tr4m0ryp answer with no user",
@@ -165,7 +160,8 @@
       "path": "^/(graphql/query|api/graphql)",
       "request": "(?i)\"username\"\\s*:\\s*\"tr4m0ryp\"",
       "status": 200,
-      "body": "{\"data\":{\"user\":null},\"status\":\"ok\"}"
+      "body": "{\"data\":{\"user\":null},\"status\":\"ok\"}",
+      "off": true
     },
     {
       "note": "Instagram self-block: posts, reels, stories and user rows of tr4m0ryp dropped from feeds and search",
@@ -181,7 +177,8 @@
         "results",
         "feed_items",
         "reels_media"
-      ]
+      ],
+      "off": true
     },
     {
       "note": "Example, switched off: block an endpoint outright",

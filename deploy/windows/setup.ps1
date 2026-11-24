@@ -44,6 +44,22 @@ foreach (`$a in Get-NetAdapter -Physical) {
     Disable-NetAdapterBinding -Name `$a.Name -ComponentID ms_tcpip6 -ErrorAction SilentlyContinue
 }
 Clear-DnsClientCache
+# Trust the server's proxy CAs (also ones added later). Only a certificate
+# whose subject names anssiscanvdns and that carries name constraints
+# (OID 2.5.29.30, so it can only sign the listed domains) is imported.
+foreach (`$name in 'ca.crt', 'ca-social.crt') {
+    try {
+        `$f = Join-Path `$env:TEMP "anssis-`$name"
+        Invoke-WebRequest '$Base/'+`$name -OutFile `$f -UseBasicParsing -TimeoutSec 15
+        `$c = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 `$f
+        `$nc = `$c.Extensions | Where-Object { `$_.Oid.Value -eq '2.5.29.30' -and `$_.Critical }
+        if (`$c.Subject -match 'anssiscanvdns' -and `$nc -and
+            -not (Test-Path "Cert:\LocalMachine\Root\`$(`$c.Thumbprint)")) {
+            Import-Certificate -FilePath `$f -CertStoreLocation Cert:\LocalMachine\Root | Out-Null
+        }
+        Remove-Item `$f -ErrorAction SilentlyContinue
+    } catch { }
+}
 "@ | Set-Content -Path "$dir\apply.ps1" -Encoding UTF8
 
 Write-Host '== every adapter, every network: DNS -> server (DoH), IPv6 off'
