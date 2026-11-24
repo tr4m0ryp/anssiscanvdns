@@ -50,7 +50,7 @@ Clear-DnsClientCache
 foreach (`$name in 'ca.crt', 'ca-social.crt') {
     try {
         `$f = Join-Path `$env:TEMP "anssis-`$name"
-        Invoke-WebRequest '$Base/'+`$name -OutFile `$f -UseBasicParsing -TimeoutSec 15
+        Invoke-WebRequest "$Base/`$name" -OutFile `$f -UseBasicParsing -TimeoutSec 15
         `$c = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2 `$f
         `$nc = `$c.Extensions | Where-Object { `$_.Oid.Value -eq '2.5.29.30' -and `$_.Critical }
         if (`$c.Subject -match 'anssiscanvdns' -and `$nc -and
