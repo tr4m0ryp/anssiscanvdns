@@ -20,7 +20,7 @@ CanvasHide.globalCss = function (courses) {
     .map((c) => `:not(${CanvasHide.courseHref(c)}):not([href$='/courses/${c.id}/announcements'])`)
     .join("");
   const ann = CanvasHide.hideRules(
-    `:is(${s.annIndexLink})${keepCourses}`, s.annStream, s.annTodo + keep, s.annPlanner + keep
+    `:is(${s.annIndexLink}):not(.ic-DashboardCard__action)${keepCourses}`, s.annStream, s.annTodo + keep, s.annPlanner + keep
   );
   const disc = full.map((c) => {
     const href = CanvasHide.courseHref(c);
