@@ -30,6 +30,11 @@ CanvasHide.runTopic = function (tid, governed) {
     show();
   };
 
+  // Listed but never opened: the page stays on a loading spinner forever.
+  if ((CanvasHide.course.annLoading || []).includes(tid)) {
+    CanvasHide.loadingForever();
+    return { cancel() {} };
+  }
   if ((CanvasHide.course.annAllow || []).includes(tid)) {
     reveal();
     return { cancel() {} };
@@ -48,4 +53,21 @@ CanvasHide.runTopic = function (tid, governed) {
   })();
 
   return { cancel: () => (cancelled = true) };
+};
+
+// Canvas-style spinner over the (still hidden) content, never resolved.
+CanvasHide.loadingForever = function () {
+  const show = () => {
+    if (!document.body) return document.addEventListener("DOMContentLoaded", show, { once: true });
+    const el = document.createElement("div");
+    el.setAttribute("role", "progressbar");
+    el.setAttribute("aria-label", "Laden");
+    el.style.cssText = "position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;pointer-events:none";
+    el.innerHTML =
+      '<div style="width:48px;height:48px;border:4px solid #c7cdd1;border-top-color:#2b7abc;' +
+      'border-radius:50%;animation:cvh-spin .8s linear infinite"></div>' +
+      "<style>@keyframes cvh-spin{to{transform:rotate(360deg)}}</style>";
+    document.body.appendChild(el);
+  };
+  show();
 };

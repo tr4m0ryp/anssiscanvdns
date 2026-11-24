@@ -16,7 +16,8 @@ CanvasHide.api = (function () {
   async function refreshIds(query, key) {
     const id = CanvasHide.course.id;
     try {
-      const list = await json(`/api/v1/courses/${id}/discussion_topics?${query}per_page=100`);
+      // cvh=1 lets this lookup past the proxy's discussion filter.
+      const list = await json(`/api/v1/courses/${id}/discussion_topics?${query}per_page=100&cvh=1`);
       const ids = list.map((a) => String(a.id));
       await CanvasHide.store.set(key, ids);
       return ids;

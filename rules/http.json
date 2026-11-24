@@ -69,6 +69,20 @@
       "match": "(course_|/courses/)(59995|59697)\\b|\"course_?[iI]d\":\\s*\"?(59995|59697)\\b|5062STRE6Y|5092LAVN6Y|Statistisch Redeneren|Lineaire algebra voor Natuur"
     },
     {
+      "note": "Governed courses (VenV-1, WDD-1): the Discussions section, pinned discussions included, bounces to the course home at the proxy, before any script runs",
+      "action": "redirect",
+      "host": "canvas.uva.nl",
+      "path": "^/courses/(59331|59300)/discussion_topics/?(\\?|#|$)",
+      "to": "/"
+    },
+    {
+      "note": "Governed courses: plain discussions (pinned ones included) dropped from their topic lists; the scripts' own id lookups (cvh=1) pass through",
+      "action": "drop",
+      "host": "canvas.uva.nl",
+      "path": "^/api/v1/courses/(59331|59300)/discussion_topics(?![^#]*cvh=1)",
+      "match": "\"is_announcement\":\\s*false"
+    },
+    {
       "note": "Announcements index bounces to the dashboard in every course except WDD-1 (59300), whose index shows only its allowed announcements",
       "action": "redirect",
       "host": "canvas.uva.nl",

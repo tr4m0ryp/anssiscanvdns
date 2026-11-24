@@ -21,6 +21,9 @@ CanvasHide.courses = [
     // The only WDD-1 announcements shown: Indienen bezwaren Deeltoets cohort 1,
     // Vervangende opdracht Practicum Scopieren, WDD-1 Deeltoets 20-11-2026.
     annAllow: ["1177553", "1173491", "1188382"],
+    // Listed, but opening it shows an endless loading screen (Indienen
+    // bezwaren Deeltoets cohort 1).
+    annLoading: ["1177553"],
     nameRe: /waarnemen,?\s*denken,?\s*doen\s*-\s*1/i,
     marks: {
       // Marks in these assignment groups (e-learnings) always show.
