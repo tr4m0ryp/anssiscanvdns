@@ -40,12 +40,22 @@ class Rule:
         self.find = re.compile(d["find"]) if self.action == "replace" else None
         self.repl = d.get("with", "")
         self.drop = re.compile(d["match"]) if self.action == "drop" else None
+        # drop: only elements of arrays held under these keys (deepest lists
+        # such as timeline entries), instead of any matching array element.
+        self.within = tuple(d.get("within", ()))
+        # block/redirect: a regex over the URL-decoded path, query and request
+        # body, for APIs that carry the subject in a POST body (GraphQL).
+        self.request = re.compile(d["request"]) if d.get("request") else None
+        # block: an optional response body (a fake "not found" payload).
+        self.body = d.get("body", "")
+        self.ctype = d.get("content_type", "application/json")
 
-    def matches(self, host: str, method: str, path: str) -> bool:
+    def matches(self, host: str, method: str, path: str, request_text: str = "") -> bool:
         return (
             host_matches(self.host, host)
             and (not self.method or self.method == method)
             and self.path.search(path) is not None
+            and (self.request is None or self.request.search(request_text) is not None)
         )
 
 
@@ -62,8 +72,8 @@ class RuleSet:
                 return h
         return None
 
-    def matching(self, action: str, host: str, method: str, path: str):
-        return [r for r in self.rules if r.action == action and r.matches(host, method, path)]
+    def matching(self, action: str, host: str, method: str, path: str, request_text: str = ""):
+        return [r for r in self.rules if r.action == action and r.matches(host, method, path, request_text)]
 
 
 def build_bundle(files: list[str]) -> str:

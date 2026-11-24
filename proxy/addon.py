@@ -18,7 +18,9 @@ from mitmproxy import http
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from anssis import Rules, device_label, drop_json, inject, record  # noqa: E402
+from urllib.parse import unquote_plus  # noqa: E402
+
+from anssis import Rules, device_label, drop_json, host_matches, inject, record  # noqa: E402
 
 TYPES = {"html": "text/html", "json": "json", "js": "javascript", "css": "text/css", "text": "text/"}
 
@@ -51,11 +53,18 @@ class Anssis:
         req.host_header = host
         flow.metadata["anssis_site"] = site
 
-        for rule in rs.matching("block", host, req.method, req.path):
-            flow.response = http.Response.make(rule.status, b"", {"Cache-Control": "no-store"})
+        # Rules with a `request` regex see the decoded URL plus the body.
+        text = ""
+        if any(r.request for r in rs.rules if r.host == "*" or host_matches(r.host, host)):
+            text = unquote_plus(req.path) + "\n" + unquote_plus(req.get_text(strict=False) or "")
+        for rule in rs.matching("block", host, req.method, req.path, text):
+            headers = {"Cache-Control": "no-store"}
+            if rule.body:
+                headers["Content-Type"] = rule.ctype
+            flow.response = http.Response.make(rule.status, rule.body.encode(), headers)
             record("block", host, req.path, rule.note, **who)
             return
-        for rule in rs.matching("redirect", host, req.method, req.path):
+        for rule in rs.matching("redirect", host, req.method, req.path, text):
             if req.path != rule.to:
                 flow.response = http.Response.make(302, b"", {"Location": rule.to, "Cache-Control": "no-store"})
                 record("redirect", host, req.path, rule.note, **who)
@@ -90,7 +99,7 @@ class Anssis:
         if "json" in ctype:
             for rule in rs.matching("drop", req.host, req.method, req.path):
                 text = resp.get_text(strict=False)
-                new, n = drop_json(text or "", rule.drop)
+                new, n = drop_json(text or "", rule.drop, rule.within)
                 if n:
                     resp.set_text(new)
                     record("drop", req.host, req.path, f"{rule.note} ({n} items)", **who)
