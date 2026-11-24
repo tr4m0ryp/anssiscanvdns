@@ -51,10 +51,10 @@
       "volatile": "(?i)^(ICStateNum|ICSID|ICElementNum|ICResubmit|ICAJAXTrf|ICBcDomData|SAMLResponse|SAMLRequest|RelayState|Signature|SigAlg|_|nonce|state|cmd_ts)$"
     },
     {
-      "note": "student.uva.nl Studieresultaten frozen: the page and its GraphQL data are answered from the first good snapshot, never refreshed",
-      "action": "freeze",
+      "note": "student.uva.nl Studieresultaten: results stay live, but any result not present at the first visit (the baseline) is dropped",
+      "action": "baseline",
       "host": "student.uva.nl",
-      "path": "^/studieresultaten(/|\\?|$)",
+      "path": "^/api/gate/graphql",
       "referer": "^https://student\\.uva\\.nl/studieresultaten(/|\\?|#|$)"
     },
     {

@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from urllib.parse import unquote_plus, urlsplit  # noqa: E402
 
-from anssis import Rules, device_label, drop_json, freeze, host_matches, inject, record  # noqa: E402
+from anssis import Rules, baseline, device_label, drop_json, freeze, host_matches, inject, record  # noqa: E402
 
 TYPES = {"html": "text/html", "json": "json", "js": "javascript", "css": "text/css", "text": "text/"}
 
@@ -77,9 +77,17 @@ class Anssis:
             flow.metadata["anssis_frozen"] = k
             flow.metadata["anssis_site_freeze"] = True
 
-        # Frozen page: answer from the snapshot, or mark the flow for capture.
+        # Baseline data: always fetched live, filtered on the way back.
         referer = req.headers.get("referer", "")
-        if not site_rule and freeze.freezable(req.method, req.path) and any(r.freezes(host, req.path, referer) for r in rs.rules):
+        if freeze.freezable(req.method, req.path) and any(
+            r.action == "baseline" and r.freezes(host, req.path, referer) for r in rs.rules
+        ):
+            flow.metadata["anssis_baseline"] = "b-" + freeze.key(host, req.method, req.path, req.raw_content or b"")
+
+        # Frozen page: answer from the snapshot, or mark the flow for capture.
+        if not site_rule and freeze.freezable(req.method, req.path) and any(
+            r.action == "freeze" and r.freezes(host, req.path, referer) for r in rs.rules
+        ):
             k = freeze.key(host, req.method, req.path, req.raw_content or b"")
             snap = freeze.load(k)
             if snap:
@@ -126,6 +134,16 @@ class Anssis:
         req, resp = flow.request, flow.response
         who = flow.metadata.get("anssis_who", {})
         ctype = resp.headers.get("content-type", "").lower()
+
+        # Baseline: first good answer is stored; later ones lose new items.
+        bk = flow.metadata.get("anssis_baseline")
+        if bk and resp.status_code == 200 and "json" in ctype:
+            raw = resp.get_content() or b""
+            if freeze.keepable(raw, ctype):
+                new, what = baseline.apply(bk, req.path, 200, list(resp.headers.items(multi=True)), raw)
+                if new is not raw:
+                    resp.set_content(new)
+                record("baseline", req.host, req.path, what, **who)
 
         # First good answer to a frozen request: keep it as the snapshot,
         # before any rewrite or injection touches it.

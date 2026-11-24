@@ -28,7 +28,7 @@ def host_matches(pattern: str, host: str) -> bool:
 class Rule:
     def __init__(self, d: dict):
         self.action = d["action"]
-        if self.action not in ("block", "redirect", "replace", "drop", "freeze"):
+        if self.action not in ("block", "redirect", "replace", "drop", "freeze", "baseline"):
             raise ValueError(f"unknown action {self.action!r}")
         self.note = d.get("note", "")
         self.host = d.get("host", "*")
@@ -71,7 +71,7 @@ class Rule:
 
     def freezes(self, host: str, path: str, referer: str) -> bool:
         """A freeze rule covers the page itself and requests made from it."""
-        if self.action != "freeze" or not host_matches(self.host, host):
+        if self.action not in ("freeze", "baseline") or not host_matches(self.host, host):
             return False
         return self.path.search(path) is not None or (
             self.referer is not None and self.referer.search(referer) is not None
