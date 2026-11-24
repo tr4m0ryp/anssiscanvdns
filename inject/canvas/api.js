@@ -39,7 +39,7 @@ CanvasHide.api = (function () {
       const id = CanvasHide.course.id;
       try {
         const t = await json(`/api/v1/courses/${id}/discussion_topics/${topicId}`);
-        return { announcement: !!t.is_announcement, pinned: !!t.pinned };
+        return { announcement: !!t.is_announcement, pinned: !!t.pinned, title: t.title || "" };
       } catch (_) {
         return null;
       }

@@ -22,6 +22,9 @@ CanvasHide.courses = [
     // The only WDD-1 announcements shown: Indienen bezwaren Deeltoets cohort 1,
     // Vervangende opdracht Practicum Scopieren, WDD-1 Deeltoets 20-11-2026.
     annAllow: ["1177553", "1173491", "1188382"],
+    // Also shown by title, id unknown when added: the RAT cohort 2 announcement.
+    // Must match the title pattern in rules/http.json.
+    annAllowTitle: /^\s*WDD-1 RAT.*cohort\s*2/i,
     // Listed, but opening it shows an endless loading screen (Indienen
     // bezwaren Deeltoets cohort 1).
     annLoading: ["1177553"],

@@ -7,8 +7,7 @@
 # block doubleclick.net
 # point example.com 10.77.0.1
 
-# SIS fully blocked (2026-11-07)
-block sis.uva.nl
+# SIS unblocked (2026-11-24).
 
 # Self-block of own social profiles. Whole x.com for now: the profile-only
 # block (rules/http.json, switched off) needs every device to trust

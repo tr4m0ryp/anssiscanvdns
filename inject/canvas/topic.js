@@ -56,6 +56,8 @@ CanvasHide.runTopic = function (tid, governed) {
     // Plain discussion: shown outside governed courses, and in a pinned-only
     // course unless it is pinned. Everything else (announcements, failed
     // lookups) is blocked.
+    const byTitle = CanvasHide.course.annAllowTitle;
+    if (t && t.announcement && byTitle && byTitle.test(t.title)) return reveal();
     const mode = CanvasHide.course.discussions;
     const showDisc =
       t && !t.announcement && (!governed || mode === "open" || (mode === "pinned" && !t.pinned));

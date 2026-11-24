@@ -15,6 +15,7 @@
   injectStyle(H.globalCss(courses) + M.css.global(frozen));
   M.runFeedback(frozen);
   H.runAnnBadges(courses);
+  H.runAnnKeep(courses);
 
   const urlId = (path.match(/\/courses\/(\d+)/) || [])[1];
   if (!urlId) return;
@@ -56,7 +57,7 @@
     H.runDiscussionLinks();
     M.runPage(course, marks);
     if (isTopic && tid) H.runTopic(tid, true);
-    if (isAnnIndex && course.annAllow) H.runAnnIndex(course.annAllow);
+    if (isAnnIndex && course.annAllow) H.runAnnIndex(course.annAllow, course.annAllowTitle);
   };
 
   // Fast path: known course id, act immediately with no DOM dependency.
