@@ -26,6 +26,7 @@
         "ans/config.js",
         "ans/items.js",
         "ans/password.js",
+        "ans/dates.js",
         "ans/main.js"
       ]
     },
