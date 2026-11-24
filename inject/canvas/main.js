@@ -14,6 +14,7 @@
   // on every page, the dashboard included.
   injectStyle(H.globalCss(courses) + M.css.global(frozen));
   M.runFeedback(frozen);
+  H.runAnnBadges(courses);
 
   const urlId = (path.match(/\/courses\/(\d+)/) || [])[1];
   if (!urlId) return;

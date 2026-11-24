@@ -27,6 +27,8 @@ CanvasHide.courses = [
     annLoading: ["1177553"],
     // Discussions section open; only pinned ("Vastgezette") discussions hidden.
     discussions: "pinned",
+    // Fixed unread count drawn on its dashboard Announcements icon.
+    annBadge: 3,
     nameRe: /waarnemen,?\s*denken,?\s*doen\s*-\s*1/i,
     marks: {
       // Marks in these assignment groups (e-learnings) always show.
@@ -60,7 +62,6 @@ CanvasHide.sel = {
   annRecent: "#announcements_on_home_page",         // course home "Recente aankondigingen"
   annNav: "#section-tabs li:has(> a.announcements), #section-tabs li:has(#aankondigingen-link)",
   annIndexLink: "a[href$='/announcements'], a[href$='/announcements/'], a[href*='/announcements?']",
-  annCard: ".ic-DashboardCard__action.announcements", // dashboard card icon + unread count
   annStream: ".stream-announcement",                 // dashboard "Recent activity"
   annTodo: "li:has(> .ToDoSidebarItem svg[name^='IconAnnouncement'])",
   annPlanner: "[class*='PlannerItem']:has(svg[name^='IconAnnouncement'])",

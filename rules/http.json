@@ -14,6 +14,7 @@
         "canvas/marks/pages.js",
         "canvas/marks/index.js",
         "canvas/topic.js",
+        "canvas/ann_badge.js",
         "canvas/ann_index.js",
         "canvas/discussions.js",
         "canvas/main.js"
