@@ -72,11 +72,13 @@ Set-ItemProperty -Path $k -Name Enabled -Type DWord -Value 1
 Set-ItemProperty -Path $k -Name ProviderURL -Value $Template
 Set-ItemProperty -Path $k -Name Locked -Type DWord -Value 1
 
-Write-Host '== trusting the proxy CA'
-$crt = Join-Path $env:TEMP 'anssis-ca.crt'
-Invoke-WebRequest "$Base/ca.crt" -OutFile $crt -UseBasicParsing
-Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Null
-Remove-Item $crt
+Write-Host '== trusting the proxy CAs (main: uva.nl, github.com; social: x.com, instagram.com)'
+foreach ($name in 'ca.crt', 'ca-social.crt') {
+    $crt = Join-Path $env:TEMP "anssis-$name"
+    Invoke-WebRequest "$Base/$name" -OutFile $crt -UseBasicParsing
+    Import-Certificate -FilePath $crt -CertStoreLocation Cert:\LocalMachine\Root | Out-Null
+    Remove-Item $crt
+}
 
 Clear-DnsClientCache
 Write-Host '== test'

@@ -17,13 +17,16 @@ TMP="$(mktemp -d)"; trap 'rm -rf "$TMP"' EXIT
 echo "== fetching config and CA from $HOST"
 ssh "$HOST" "sudo cat /etc/anssiscanvdns/peers/$PEER.conf" > "$TMP/anssis.conf"
 ssh "$HOST" "cat /etc/anssiscanvdns/ca.crt" > "$TMP/ca.crt"
+ssh "$HOST" "cat /etc/anssiscanvdns/ca-social.crt" > "$TMP/ca-social.crt"
 openssl x509 -in "$TMP/ca.crt" -noout -ext nameConstraints
+openssl x509 -in "$TMP/ca-social.crt" -noout -ext nameConstraints
 
 echo "== wireguard-tools"
 command -v wg-quick >/dev/null || brew install -q wireguard-tools
 
 echo "== trusting the proxy CA (System keychain)"
 sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$TMP/ca.crt"
+sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "$TMP/ca-social.crt"
 
 echo "== tunnel config -> $CONF"
 sudo mkdir -p "$CONF_DIR"
