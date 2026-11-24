@@ -14,6 +14,7 @@
         "canvas/marks/pages.js",
         "canvas/marks/index.js",
         "canvas/topic.js",
+        "canvas/ann_index.js",
         "canvas/discussions.js",
         "canvas/main.js"
       ]
@@ -68,25 +69,25 @@
       "match": "(course_|/courses/)(59995|59697)\\b|\"course_?[iI]d\":\\s*\"?(59995|59697)\\b|5062STRE6Y|5092LAVN6Y|Statistisch Redeneren|Lineaire algebra voor Natuur"
     },
     {
-      "note": "Announcements, every course: the Announcements index bounces to the dashboard",
+      "note": "Announcements index bounces to the dashboard in every course except WDD-1 (59300), whose index shows only its allowed announcements",
       "action": "redirect",
       "host": "canvas.uva.nl",
-      "path": "^/courses/\\d+/announcements(/|$|\\?|#)",
+      "path": "^/courses/(?!59300(?:/|$|\\?|#))\\d+/announcements(/|$|\\?|#)",
       "to": "/"
     },
     {
-      "note": "Announcements, every course: the announcements API answers 404",
-      "action": "block",
+      "note": "Announcements API: every announcement dropped except WDD-1's allowed ones (1177553, 1173491, 1188382)",
+      "action": "drop",
       "host": "canvas.uva.nl",
       "path": "^/api/v1/announcements(/|$|\\?)",
-      "status": 404
+      "match": "^(?![\\s\\S]*(?:discussion_topics/|\"id\":\\s*\"?)(?:1177553|1173491|1188382)\\b)"
     },
     {
-      "note": "Announcements, every course: dropped from every API list (To-do, planner, activity stream, topic lists, GraphQL)",
+      "note": "Announcements, every course: dropped from every API list (To-do, planner, activity stream, topic lists, GraphQL), except WDD-1's allowed ones (1177553, 1173491, 1188382)",
       "action": "drop",
       "host": "canvas.uva.nl",
       "path": "^/api/",
-      "match": "\"plannable_type\":\\s*\"announcement\"|\"is_announcement\":\\s*true|\"isAnnouncement\":\\s*true|\"type\":\\s*\"Announcement\""
+      "match": "^(?![\\s\\S]*(?:discussion_topics/|\"(?:plannable_)?id\":\\s*\"?|\"_id\":\\s*\")(?:1177553|1173491|1188382)\\b)[\\s\\S]*?(?:\"plannable_type\":\\s*\"announcement\"|\"is_announcement\":\\s*true|\"isAnnouncement\":\\s*true|\"type\":\\s*\"Announcement\")"
     },
     {
       "note": "github.com/tr4m0ryp profile page blocked (self). Only the exact profile path, not /tr4m0ryp/<repo>, so repos and the sync keep working.",

@@ -22,6 +22,7 @@
   // Discussions index (and /new etc.): the whole section is blocked.
   const isDiscussions = !isTopic && /\/courses\/\d+\/discussion_topics(\/|$)/.test(path);
   const tid = topicId(path);
+  const isAnnIndex = /\/courses\/\d+\/announcements\/?$/.test(path);
 
   // A topic page may be an announcement in any course: hold its content
   // invisible before paint until topic.js decides.
@@ -40,7 +41,7 @@
       return location.replace(`/courses/${urlId}`);
     }
     // Base hiding (Discussions tab and links) on every course page.
-    let sheet = css.base;
+    let sheet = css.base + H.annPageCss(course.annAllow);
     if (isTopic && tid) {
       document.documentElement.setAttribute("data-cvh-topic", "pending");
       sheet += css.topic;
@@ -52,6 +53,7 @@
     H.runDiscussionLinks();
     M.runPage(course, marks);
     if (isTopic && tid) H.runTopic(tid, true);
+    if (isAnnIndex && course.annAllow) H.runAnnIndex(course.annAllow);
   };
 
   // Fast path: known course id, act immediately with no DOM dependency.
@@ -62,6 +64,7 @@
   // and checked; if the course turns out to be governed (new id), apply()
   // takes over and the topic is blocked outright.
   let ungoverned = null;
+  injectStyle(H.annPageCss(null));
   if (isTopic && tid) {
     holdTopic();
     H.useCourse({ id: urlId });

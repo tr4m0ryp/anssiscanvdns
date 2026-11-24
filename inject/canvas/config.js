@@ -2,9 +2,10 @@
 // Content scripts are not ES modules, so state is shared via a global.
 var CanvasHide = globalThis.CanvasHide || (globalThis.CanvasHide = {});
 
-// Announcements are hidden in every course (see css.js and topic.js). The
-// governed courses below also get the Discussions block, and a course with
-// `marks` also gets the marks freeze (see src/canvas/marks/).
+// Announcements are hidden in every course (see css.js and topic.js), except
+// the ids in a course's `annAllow`. The governed courses below also get the
+// Discussions block, and a course with `marks` also gets the marks freeze
+// (see src/canvas/marks/). annAllow must match the ids in rules/http.json.
 CanvasHide.courses = [
   {
     // Primary match: the course id in the URL (/courses/<id>/...). Fallbacks
@@ -17,6 +18,9 @@ CanvasHide.courses = [
   {
     id: "59300",
     codeRe: /4021WDD10Y/i,
+    // The only WDD-1 announcements shown: Indienen bezwaren Deeltoets cohort 1,
+    // Vervangende opdracht Practicum Scopieren, WDD-1 Deeltoets 20-11-2026.
+    annAllow: ["1177553", "1173491", "1188382"],
     nameRe: /waarnemen,?\s*denken,?\s*doen\s*-\s*1/i,
     marks: {
       // Marks in these assignment groups (e-learnings) always show.
@@ -38,11 +42,15 @@ CanvasHide.hidden = [
   { id: "59697", textRe: /5092LAVN6Y|Lineaire algebra voor Natuur/i },
 ];
 
+// Every allowed announcement id, across courses.
+CanvasHide.annAllowIds = CanvasHide.courses.flatMap((c) => c.annAllow || []);
+
 // The matched course, set by main.js before any page handler runs.
 CanvasHide.course = null;
 
 CanvasHide.sel = {
   // Announcements, hidden on every page of every course.
+  annRow: ".ic-announcement-row",                  // a row on the Announcements index
   annRecent: "#announcements_on_home_page",         // course home "Recente aankondigingen"
   annNav: "#section-tabs li:has(> a.announcements), #section-tabs li:has(#aankondigingen-link)",
   annIndexLink: "a[href$='/announcements'], a[href$='/announcements/'], a[href*='/announcements?']",

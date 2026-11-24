@@ -1,6 +1,6 @@
 // A single discussion/announcement page (/courses/<id>/discussion_topics/<tid>).
 // Content is held invisible by CSS (data-cvh-topic="pending", set before paint).
-// Announcements are never shown, in any course. In a governed course every
+// Announcements are never shown, in any course, except the course's annAllow. In a governed course every
 // topic is blocked, since its Discussions section is blocked entirely; in any
 // other course a plain discussion is revealed once the API confirms it is not
 // an announcement. A failed lookup blocks (fail closed).
@@ -29,6 +29,11 @@ CanvasHide.runTopic = function (tid, governed) {
     };
     show();
   };
+
+  if ((CanvasHide.course.annAllow || []).includes(tid)) {
+    reveal();
+    return { cancel() {} };
+  }
 
   (async () => {
     // true / false, or null when the lookup failed.

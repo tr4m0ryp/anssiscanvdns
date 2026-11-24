@@ -8,17 +8,32 @@ CanvasHide.hideRules = (...list) => list.map((x) => `${x} { display: none !impor
 CanvasHide.courseHref = (course) => `[href*='/courses/${course.id}/']`;
 
 // Every Canvas page (dashboard included): announcements of every course, and
-// each governed course's Discussions entries.
+// each governed course's Discussions entries. Allowed announcements keep their
+// To-do and planner rows, and a course with allowed ones keeps its
+// Announcements tab, home block and index links (see annPageCss).
 CanvasHide.globalCss = function (courses) {
   const s = CanvasHide.sel;
+  const keep = CanvasHide.annAllowIds.map((id) => `:not(:has(a[href*='discussion_topics/${id}']))`).join("");
+  const keepCourses = courses
+    .filter((c) => c.annAllow)
+    .map((c) => `:not(${CanvasHide.courseHref(c)}):not([href$='/courses/${c.id}/announcements'])`)
+    .join("");
   const ann = CanvasHide.hideRules(
-    s.annRecent, s.annNav, `:is(${s.annIndexLink})`, s.annCard, s.annStream, s.annTodo, s.annPlanner
+    `:is(${s.annIndexLink})${keepCourses}`, s.annCard, s.annStream, s.annTodo + keep, s.annPlanner + keep
   );
   const disc = courses.map((c) => {
     const href = CanvasHide.courseHref(c);
     return CanvasHide.hideRules(s.discCard + href, `${s.discTodo}:has(a${href})`);
   });
   return [ann, ...disc].join("\n");
+};
+
+// Course pages: the Announcements tab and home block, hidden unless the course
+// has allowed announcements; on its index only allowed rows (.cvh-show) appear.
+CanvasHide.annPageCss = function (allow) {
+  const s = CanvasHide.sel;
+  if (!allow) return CanvasHide.hideRules(s.annRecent, s.annNav);
+  return `${s.annRow}:not(.cvh-show) { display: none !important; }`;
 };
 
 // Sheets for pages inside the matched course.
