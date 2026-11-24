@@ -34,10 +34,10 @@
   },
   "rules": [
     {
-      "note": "Statistisch Redeneren is hidden: its ANS course pages bounce to the dashboard before they load",
+      "note": "Statistisch Redeneren is hidden: its ANS course pages (results included) bounce to the dashboard before they load",
       "action": "redirect",
       "host": "ans.uva.nl",
-      "path": "^/courses/695168(/|$|\\?)",
+      "path": "^(/universities/\\d+)?/courses/695168(/|$|\\?|#)",
       "to": "/"
     },
     {
