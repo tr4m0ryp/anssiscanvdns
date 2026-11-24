@@ -18,7 +18,7 @@ from mitmproxy import http
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from urllib.parse import unquote_plus  # noqa: E402
+from urllib.parse import unquote_plus, urlsplit  # noqa: E402
 
 from anssis import Rules, device_label, drop_json, freeze, host_matches, inject, record  # noqa: E402
 
@@ -68,6 +68,14 @@ class Anssis:
                 flow.response.headers["Cache-Control"] = "no-store"
                 flow.metadata["anssis_frozen"] = "served"
                 record("freeze", host, req.path, "served from snapshot", **who)
+                return
+            # Once the page itself is frozen, a request from it that has no
+            # snapshot yet (another device, a different query) is refused
+            # instead of fetched, so no newer data can arrive.
+            page = urlsplit(referer).path if referer else ""
+            if page and page != req.path and freeze.load(freeze.key(host, "GET", page, b"")):
+                flow.response = http.Response.make(404, b"", {"Cache-Control": "no-store"})
+                record("freeze", host, req.path, "refused: page frozen, no snapshot", **who)
                 return
             flow.metadata["anssis_frozen"] = k
 
