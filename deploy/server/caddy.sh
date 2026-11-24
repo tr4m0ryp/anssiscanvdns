@@ -11,6 +11,7 @@ ROOT="$(cd "$HERE/../.." && pwd)"
 
 install -d -m 755 "$ETC/public"
 install -m 644 "$ETC/ca.crt" "$ETC/public/ca.crt"
+[ -f "$ETC/ca-social.crt" ] && install -m 644 "$ETC/ca-social.crt" "$ETC/public/ca-social.crt"
 install -m 644 "$ROOT/deploy/windows/setup.ps1" "$ETC/public/win"
 install -m 644 "$ROOT/deploy/windows/undo.ps1" "$ETC/public/win-undo"
 if [ ! -f "$ETC/admin.hash" ]; then
@@ -22,7 +23,18 @@ fi
 # The access log must exist and belong to caddy before `caddy validate` (run
 # as root) would create it root-owned, which makes the reload fail.
 [ -f /var/log/caddy/anssis-access.log ] || install -o caddy -g caddy -m 644 /dev/null /var/log/caddy/anssis-access.log
-SITES="$(python3 -c 'import json,sys; print(", ".join(f"{h}, *.{h}" for h in json.load(open(sys.argv[1]))["hosts"]))' "$ROOT/rules/http.json")"
+# Proxied hosts, split by the CA that signs their certificate (see leaf.sh).
+sites() {
+  python3 - "$ROOT/rules/http.json" "$1" "$CA_SOCIAL_DOMAINS" <<'PY'
+import json, sys
+hosts = json.load(open(sys.argv[1]))["hosts"]
+social = sys.argv[3].split()
+is_social = lambda h: any(h == d or h.endswith("." + d) for d in social)
+print(", ".join(f"{h}, *.{h}" for h in hosts if is_social(h) == (sys.argv[2] == "social")))
+PY
+}
+SITES="$(sites main)"
+SOCIAL_SITES="$(sites social)"
 
 NEW=/etc/caddy/anssis.caddy.new
 cat > "$NEW" <<CADDY
@@ -39,7 +51,8 @@ $PUBLIC_HOST${PUBLIC_ALIASES:+, $PUBLIC_ALIASES} {
 	handle /dns-query {
 		reverse_proxy 127.0.0.1:$DOH_PORT
 	}
-	handle /ca.crt {
+	@ca path /ca.crt /ca-social.crt
+	handle @ca {
 		root * $ETC/public
 		header Content-Type application/x-x509-ca-cert
 		file_server
@@ -72,6 +85,24 @@ $SITES {
 		flush_interval -1
 	}
 }
+
+$(if [ -n "$SOCIAL_SITES" ]; then cat <<SOCIAL
+$SOCIAL_SITES {
+	tls $ETC/tls/proxy-social.crt $ETC/tls/proxy-social.key
+	log {
+		output file /var/log/caddy/anssis-access.log {
+			mode 0644
+			roll_size 20MiB
+			roll_keep 5
+		}
+		format json
+	}
+	reverse_proxy 127.0.0.1:$MITM_PORT {
+		flush_interval -1
+	}
+}
+SOCIAL
+fi)
 CADDY
 if cmp -s "$NEW" /etc/caddy/anssis.caddy; then rm -f "$NEW"; exit 0; fi
 [ -f /etc/caddy/anssis.caddy ] && cp /etc/caddy/anssis.caddy /etc/caddy/anssis.caddy.prev

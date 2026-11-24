@@ -26,5 +26,6 @@ fi
 
 # A new proxied host needs a certificate and a Caddy site; both scripts are
 # no-ops (no reload) when nothing changed.
+sh "$ROOT/deploy/server/ca.sh" "$OWNER" social
 sh "$ROOT/deploy/server/leaf.sh"
 sh "$ROOT/deploy/server/caddy.sh"
