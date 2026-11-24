@@ -34,13 +34,6 @@
   },
   "rules": [
     {
-      "note": "ANS results: every URL with 'result' in it bounces home, except results 25556935 and 25850035 (and their sub-pages). Static assets are left alone.",
-      "action": "redirect",
-      "host": "ans.uva.nl",
-      "path": "^/(?!(?:assets|packs|vite)/)(?!results/(?:25556935|25850035)(?:[/?#]|$))[^#]*result",
-      "to": "/"
-    },
-    {
       "note": "Statistisch Redeneren is hidden: its ANS course pages bounce to the dashboard before they load",
       "action": "redirect",
       "host": "ans.uva.nl",
