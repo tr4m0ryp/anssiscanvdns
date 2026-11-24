@@ -10,9 +10,8 @@
 # SIS fully blocked (2026-11-07)
 block sis.uva.nl
 
-# Self-block of own social profiles (2026-11-07): whole domains, path-level
-# is not possible over DNS.
-block x.com
+# Self-block of own social profiles: x.com and www.instagram.com are proxied
+# (rules/http.json) so only the tr4m0ryp profile and its content are blocked.
 
 # ANS reopened (2026-11-23 23:00): proxied via rules/http.json, where every
 # results URL is blocked except two.

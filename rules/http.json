@@ -30,6 +30,16 @@
     },
     "github.com": {
       "inject": []
+    },
+    "x.com": {
+      "inject": [
+        "social/guard.js"
+      ]
+    },
+    "www.instagram.com": {
+      "inject": [
+        "social/guard.js"
+      ]
     }
   },
   "rules": [
@@ -102,6 +112,76 @@
       "host": "github.com",
       "path": "^/tr4m0ryp(\\?.*)?/?$",
       "to": "/"
+    },
+    {
+      "note": "X self-block: tr4m0ryp profile and tweet pages go to X's not-found page",
+      "action": "redirect",
+      "host": "x.com",
+      "path": "(?i)^/tr4m0ryp(/|\\?|#|$)",
+      "to": "/i/notfound_404_page"
+    },
+    {
+      "note": "X self-block: profile lookups for tr4m0ryp answer as a nonexistent account",
+      "action": "block",
+      "host": "x.com",
+      "path": "^/(i/api|graphql|1\\.1|2)/",
+      "request": "(?i)\"screen_?name\"\\s*:\\s*\"tr4m0ryp\"|screen_name=tr4m0ryp\\b",
+      "status": 200,
+      "body": "{\"data\":{}}"
+    },
+    {
+      "note": "X self-block: tweets, replies, mentions and user rows of tr4m0ryp dropped from timelines, search and lists",
+      "action": "drop",
+      "host": "x.com",
+      "path": "^/",
+      "match": "(?i)\"screen_name\"\\s*:\\s*\"tr4m0ryp\"",
+      "within": [
+        "entries",
+        "moduleItems",
+        "users",
+        "items"
+      ]
+    },
+    {
+      "note": "Instagram self-block: tr4m0ryp profile and stories pages go to Instagram's not-found page",
+      "action": "redirect",
+      "host": "www.instagram.com",
+      "path": "(?i)^/(stories/)?tr4m0ryp(/|\\?|#|$)",
+      "to": "/p/notfound404/"
+    },
+    {
+      "note": "Instagram self-block: profile info for tr4m0ryp answers as user not found",
+      "action": "block",
+      "host": "www.instagram.com",
+      "path": "^/api/v1/users/web_profile_info/",
+      "request": "(?i)username=tr4m0ryp\\b",
+      "status": 404,
+      "body": "{\"message\":\"User not found\",\"status\":\"fail\"}"
+    },
+    {
+      "note": "Instagram self-block: GraphQL queries for tr4m0ryp answer with no user",
+      "action": "block",
+      "host": "www.instagram.com",
+      "path": "^/(graphql/query|api/graphql)",
+      "request": "(?i)\"username\"\\s*:\\s*\"tr4m0ryp\"",
+      "status": 200,
+      "body": "{\"data\":{\"user\":null},\"status\":\"ok\"}"
+    },
+    {
+      "note": "Instagram self-block: posts, reels, stories and user rows of tr4m0ryp dropped from feeds and search",
+      "action": "drop",
+      "host": "www.instagram.com",
+      "path": "^/",
+      "match": "(?i)\"username\"\\s*:\\s*\"tr4m0ryp\"",
+      "within": [
+        "edges",
+        "items",
+        "users",
+        "list",
+        "results",
+        "feed_items",
+        "reels_media"
+      ]
     },
     {
       "note": "Example, switched off: block an endpoint outright",
