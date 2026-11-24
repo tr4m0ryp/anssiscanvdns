@@ -60,7 +60,6 @@ class Rule:
             and (self.request is None or self.request.search(request_text) is not None)
         )
 
-
     def freezes(self, host: str, path: str, referer: str) -> bool:
         """A freeze rule covers the page itself and requests made from it."""
         if self.action != "freeze" or not host_matches(self.host, host):
