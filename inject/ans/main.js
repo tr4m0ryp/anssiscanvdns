@@ -25,8 +25,9 @@
     const crumb = document.querySelector("nav.breadcrumb");
     const blocked =
       H.blockedPath(location.pathname) ||
-      H.matches(document.title) ||
-      (crumb && H.matches(crumb.textContent));
+      // Title and breadcrumb together, so an allowed name in either one
+      // lets the page through.
+      H.matches(document.title + " " + (crumb ? crumb.textContent : ""));
     if (!blocked) return false;
     leaving = true;
     root.setAttribute("data-ans-leaving", "");
