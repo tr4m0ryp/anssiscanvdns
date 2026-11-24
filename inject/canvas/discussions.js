@@ -26,3 +26,18 @@ CanvasHide.runDiscussionLinks = function () {
   api.refreshDiscussionIds().then(add);
   new MutationObserver(apply).observe(document.documentElement, { childList: true, subtree: true });
 };
+
+// Discussions index of a pinned-only course: the "Vastgezette discussies"
+// (Pinned Discussions) group is removed whole, heading included. Its rows are
+// also hidden by id and dropped by the proxy; this covers the empty group.
+CanvasHide.runPinnedSection = function () {
+  const HEAD = /^\s*(Vastgezette discussies|Pinned Discussions)\s*$/i;
+  const apply = () => {
+    document.querySelectorAll("#content button, #content h2, #content h3, #content span").forEach((el) => {
+      if (!HEAD.test(el.textContent)) return;
+      const group = el.closest("[class*='toggle'], [class*='ToggleDetails'], section, li, div") || el;
+      group.classList.add("cvh-hide");
+    });
+  };
+  new MutationObserver(apply).observe(document.documentElement, { childList: true, subtree: true });
+};

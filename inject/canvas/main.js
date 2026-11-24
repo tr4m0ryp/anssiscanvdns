@@ -36,7 +36,9 @@
     const css = H.buildCss();
     // Leave the Discussions section before anything paints, back to the course
     // home, the way Canvas treats a section that is switched off.
-    if (isDiscussions) {
+    if (isDiscussions && course.discussions === "pinned") {
+      H.runPinnedSection();
+    } else if (isDiscussions) {
       injectStyle(css.base + css.leaving);
       return location.replace(`/courses/${urlId}`);
     }

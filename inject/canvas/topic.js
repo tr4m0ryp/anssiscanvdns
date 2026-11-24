@@ -41,12 +41,16 @@ CanvasHide.runTopic = function (tid, governed) {
   }
 
   (async () => {
-    // true / false, or null when the lookup failed.
-    const isAnn = await api.isAnnouncement(tid);
+    const t = await api.topic(tid);
     if (cancelled) return;
-    if (isAnn === false && !governed) return reveal();
+    // Plain discussion: shown outside governed courses, and in a pinned-only
+    // course unless it is pinned. Everything else (announcements, failed
+    // lookups) is blocked.
+    const pinnedOnly = CanvasHide.course.discussions === "pinned";
+    const showDisc = t && !t.announcement && (!governed || (pinnedOnly && !t.pinned));
+    if (showDisc) return reveal();
     return block(
-      isAnn === false
+      t && !t.announcement
         ? "Deze discussie is niet beschikbaar."
         : "Deze aankondiging is niet beschikbaar."
     );

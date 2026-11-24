@@ -18,7 +18,9 @@ CanvasHide.api = (function () {
     try {
       // cvh=1 lets this lookup past the proxy's discussion filter.
       const list = await json(`/api/v1/courses/${id}/discussion_topics?${query}per_page=100&cvh=1`);
-      const ids = list.map((a) => String(a.id));
+      // A pinned-only course blocks just its pinned discussions.
+      const pinnedOnly = CanvasHide.course.discussions === "pinned" && !query;
+      const ids = list.filter((a) => !pinnedOnly || a.pinned).map((a) => String(a.id));
       await CanvasHide.store.set(key, ids);
       return ids;
     } catch (_) {
@@ -30,13 +32,13 @@ CanvasHide.api = (function () {
     json,
     // All discussion ids in the course, refreshed into storage.
     refreshDiscussionIds: () => refreshIds("", CanvasHide.keys.discIds),
-    // Whether a single topic is an announcement.
-    // null means unknown (request failed), so callers can decide how to fail.
-    async isAnnouncement(topicId) {
+    // A single topic's flags: { announcement, pinned }, or null when the
+    // lookup failed (callers fail closed).
+    async topic(topicId) {
       const id = CanvasHide.course.id;
       try {
         const t = await json(`/api/v1/courses/${id}/discussion_topics/${topicId}`);
-        return !!t.is_announcement;
+        return { announcement: !!t.is_announcement, pinned: !!t.pinned };
       } catch (_) {
         return null;
       }
