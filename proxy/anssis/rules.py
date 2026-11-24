@@ -61,6 +61,15 @@ class Rule:
         )
 
 
+    def freezes(self, host: str, path: str, referer: str) -> bool:
+        """A freeze rule covers the page itself and requests made from it."""
+        if self.action != "freeze" or not host_matches(self.host, host):
+            return False
+        return self.path.search(path) is not None or (
+            self.referer is not None and self.referer.search(referer) is not None
+        )
+
+
 class RuleSet:
     def __init__(self, data: dict):
         self.hosts = {h.lower(): cfg for h, cfg in data.get("hosts", {}).items()}
@@ -73,14 +82,6 @@ class RuleSet:
             if host_matches(h, host):
                 return h
         return None
-
-    def freezes(self, host: str, path: str, referer: str) -> bool:
-        """A freeze rule covers the page itself and requests made from it."""
-        if self.action != "freeze" or not host_matches(self.host, host):
-            return False
-        return self.path.search(path) is not None or (
-            self.referer is not None and self.referer.search(referer) is not None
-        )
 
     def matching(self, action: str, host: str, method: str, path: str, request_text: str = ""):
         return [r for r in self.rules if r.action == action and r.matches(host, method, path, request_text)]

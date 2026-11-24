@@ -63,9 +63,8 @@ class Anssis:
             k = freeze.key(host, req.method, req.path, req.raw_content or b"")
             snap = freeze.load(k)
             if snap:
-                flow.response = http.Response.make(
-                    snap["status"], snap["body"].encode("latin-1"), snap["headers"]
-                )
+                headers = http.Headers([(n.encode(), v.encode()) for n, v in snap["headers"]])
+                flow.response = http.Response.make(snap["status"], snap["body"].encode("latin-1"), headers)
                 flow.response.headers["Cache-Control"] = "no-store"
                 flow.metadata["anssis_frozen"] = "served"
                 record("freeze", host, req.path, "served from snapshot", **who)

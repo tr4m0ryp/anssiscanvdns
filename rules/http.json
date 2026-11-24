@@ -36,6 +36,20 @@
   },
   "rules": [
     {
+      "note": "VenV-1 grades frozen: the page and every request it makes are answered from the first snapshot, never refreshed",
+      "action": "freeze",
+      "host": "canvas.uva.nl",
+      "path": "^/courses/59331/grades(/|\\?|$)",
+      "referer": "^https://canvas\\.uva\\.nl/courses/59331/grades(/|\\?|#|$)"
+    },
+    {
+      "note": "VenV-1 external tool 20285 frozen: its Canvas launch page and requests made from it are answered from the first snapshot",
+      "action": "freeze",
+      "host": "canvas.uva.nl",
+      "path": "^/courses/59331/external_tools/20285(/|\\?|$)",
+      "referer": "^https://canvas\\.uva\\.nl/courses/59331/external_tools/20285(/|\\?|#|$)"
+    },
+    {
       "note": "Statistisch Redeneren is hidden: its ANS course pages (results included) bounce to the dashboard before they load",
       "action": "redirect",
       "host": "ans.uva.nl",
