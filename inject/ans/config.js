@@ -13,6 +13,9 @@ AnsHide.rules = {
   // Single assignments hidden everywhere, results included. None now: every
   // result shows except Statistisch Redeneren's (hidden with its course).
   assignments: [],
+  // Always shown, even inside a hidden course: pages and items whose text
+  // names one of these (assignment pages, their results, list rows).
+  allow: [/Huiswerk\s*Regress/i],
 };
 
 // The smallest page element that is one item: home cards, calendar events and
@@ -21,6 +24,7 @@ AnsHide.itemSel = "a.dropdown-item, div.dropdown:has(> .calendar-event), a.box, 
 
 AnsHide.matches = function (text) {
   const r = AnsHide.rules;
+  if (r.allow.some((re) => re.test(text))) return false;
   return r.courses.some((c) => c.textRe.test(text)) || r.assignments.some((re) => re.test(text));
 };
 
