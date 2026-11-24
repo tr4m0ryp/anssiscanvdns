@@ -29,3 +29,7 @@ ETC=/etc/anssiscanvdns
 # constraints), so a leaked CA key cannot impersonate any other site.
 # Changing this means regenerating the CA and re-trusting it on each client.
 CA_DOMAINS="uva.nl github.com"
+# A second CA, equally name-constrained, for the social sites (self-block of
+# own profiles). Separate so adding it never invalidates the first CA on
+# devices that already trust it; each client trusts both (ca.crt, ca-social.crt).
+CA_SOCIAL_DOMAINS="x.com twitter.com instagram.com"
