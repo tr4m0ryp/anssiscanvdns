@@ -28,7 +28,7 @@ def host_matches(pattern: str, host: str) -> bool:
 class Rule:
     def __init__(self, d: dict):
         self.action = d["action"]
-        if self.action not in ("block", "redirect", "replace", "drop"):
+        if self.action not in ("block", "redirect", "replace", "drop", "freeze"):
             raise ValueError(f"unknown action {self.action!r}")
         self.note = d.get("note", "")
         self.host = d.get("host", "*")
@@ -49,6 +49,8 @@ class Rule:
         # block: an optional response body (a fake "not found" payload).
         self.body = d.get("body", "")
         self.ctype = d.get("content_type", "application/json")
+        # freeze: requests whose Referer matches are frozen with the page.
+        self.referer = re.compile(d["referer"]) if d.get("referer") else None
 
     def matches(self, host: str, method: str, path: str, request_text: str = "") -> bool:
         return (
@@ -71,6 +73,14 @@ class RuleSet:
             if host_matches(h, host):
                 return h
         return None
+
+    def freezes(self, host: str, path: str, referer: str) -> bool:
+        """A freeze rule covers the page itself and requests made from it."""
+        if self.action != "freeze" or not host_matches(self.host, host):
+            return False
+        return self.path.search(path) is not None or (
+            self.referer is not None and self.referer.search(referer) is not None
+        )
 
     def matching(self, action: str, host: str, method: str, path: str, request_text: str = ""):
         return [r for r in self.rules if r.action == action and r.matches(host, method, path, request_text)]

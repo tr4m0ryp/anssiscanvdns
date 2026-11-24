@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from urllib.parse import unquote_plus  # noqa: E402
 
-from anssis import Rules, device_label, drop_json, host_matches, inject, record  # noqa: E402
+from anssis import Rules, device_label, drop_json, freeze, host_matches, inject, record  # noqa: E402
 
 TYPES = {"html": "text/html", "json": "json", "js": "javascript", "css": "text/css", "text": "text/"}
 
@@ -57,6 +57,21 @@ class Anssis:
         text = ""
         if any(r.request for r in rs.rules if r.host == "*" or host_matches(r.host, host)):
             text = unquote_plus(req.path) + "\n" + unquote_plus(req.get_text(strict=False) or "")
+        # Frozen page: answer from the snapshot, or mark the flow for capture.
+        referer = req.headers.get("referer", "")
+        if freeze.freezable(req.method, req.path) and any(r.freezes(host, req.path, referer) for r in rs.rules):
+            k = freeze.key(host, req.method, req.path, req.raw_content or b"")
+            snap = freeze.load(k)
+            if snap:
+                flow.response = http.Response.make(
+                    snap["status"], snap["body"].encode("latin-1"), snap["headers"]
+                )
+                flow.response.headers["Cache-Control"] = "no-store"
+                flow.metadata["anssis_frozen"] = "served"
+                record("freeze", host, req.path, "served from snapshot", **who)
+                return
+            flow.metadata["anssis_frozen"] = k
+
         for rule in rs.matching("block", host, req.method, req.path, text):
             headers = {"Cache-Control": "no-store"}
             if rule.body:
@@ -84,6 +99,13 @@ class Anssis:
         req, resp = flow.request, flow.response
         who = flow.metadata.get("anssis_who", {})
         ctype = resp.headers.get("content-type", "").lower()
+
+        # First good answer to a frozen request: keep it as the snapshot,
+        # before any rewrite or injection touches it.
+        k = flow.metadata.get("anssis_frozen")
+        if k and k != "served" and resp.status_code == 200:
+            freeze.save(k, req.path, 200, list(resp.headers.items(multi=True)), resp.get_content() or b"")
+            record("freeze", req.host, req.path, "snapshot taken", **who)
 
         for rule in rs.matching("replace", req.host, req.method, req.path):
             if rule.type and TYPES.get(rule.type, rule.type) not in ctype:
