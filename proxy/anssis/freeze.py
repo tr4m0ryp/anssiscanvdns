@@ -11,7 +11,9 @@ GraphQL POSTs are frozen, never writes. Set-Cookie is not replayed.
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
+from urllib.parse import parse_qsl, urlencode
 
 STATE = Path(os.environ.get("ANSSIS_STATE", Path.home() / ".local/state/anssiscanvdns"))
 DIR = STATE / "freeze"
@@ -43,3 +45,24 @@ def save(k: str, path: str, status: int, headers: list, body: bytes) -> None:
     tmp = DIR / f"{k}.tmp"
     tmp.write_text(json.dumps(snap), encoding="utf-8")
     tmp.replace(DIR / f"{k}.json")
+
+
+# Whole-site freeze (PeopleSoft SIS). Requests carry per-visit counters and
+# session tokens (ICStateNum, ICSID, SAMLResponse, cache busters), so the key
+# drops the parameters named by the rule's `volatile` regex from the query
+# and from a form body; a later visit then finds the same snapshot.
+def _strip(pairs: list, volatile: re.Pattern) -> str:
+    return urlencode(sorted((k, v) for k, v in pairs if not volatile.search(k)))
+
+
+def site_key(host: str, method: str, path: str, body: bytes, ctype: str, volatile: re.Pattern) -> str:
+    base, _, query = path.partition("?")
+    norm = base + "?" + _strip(parse_qsl(query, keep_blank_values=True), volatile)
+    h = hashlib.sha256(f"site\n{host}\n{method}\n{norm}\n".encode())
+    if method != "GET":
+        if "x-www-form-urlencoded" in ctype:
+            text = (body or b"").decode("utf-8", "replace")
+            h.update(_strip(parse_qsl(text, keep_blank_values=True), volatile).encode())
+        else:
+            h.update(body or b"")
+    return h.hexdigest()

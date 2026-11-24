@@ -57,9 +57,29 @@ class Anssis:
         text = ""
         if any(r.request for r in rs.rules if r.host == "*" or host_matches(r.host, host)):
             text = unquote_plus(req.path) + "\n" + unquote_plus(req.get_text(strict=False) or "")
+        # Frozen site: snapshot, or record while the window is open, or refuse.
+        site_rule = next((r for r in rs.rules if r.action == "freeze" and r.site and host_matches(r.host, host)), None)
+        if site_rule:
+            k = freeze.site_key(host, req.method, req.path, req.raw_content or b"",
+                                req.headers.get("content-type", ""), site_rule.volatile)
+            snap = freeze.load(k)
+            if snap:
+                headers = http.Headers([(n.encode(), v.encode()) for n, v in snap["headers"]])
+                flow.response = http.Response.make(snap["status"], snap["body"].encode("latin-1"), headers)
+                flow.response.headers["Cache-Control"] = "no-store"
+                flow.metadata["anssis_frozen"] = "served"
+                record("freeze", host, req.path[:120], "site: served from snapshot", **who)
+                return
+            if site_rule.sealed():
+                flow.response = http.Response.make(404, b"", {"Cache-Control": "no-store"})
+                record("freeze", host, req.path[:120], "site sealed: no snapshot, refused", **who)
+                return
+            flow.metadata["anssis_frozen"] = k
+            flow.metadata["anssis_site_freeze"] = True
+
         # Frozen page: answer from the snapshot, or mark the flow for capture.
         referer = req.headers.get("referer", "")
-        if freeze.freezable(req.method, req.path) and any(r.freezes(host, req.path, referer) for r in rs.rules):
+        if not site_rule and freeze.freezable(req.method, req.path) and any(r.freezes(host, req.path, referer) for r in rs.rules):
             k = freeze.key(host, req.method, req.path, req.raw_content or b"")
             snap = freeze.load(k)
             if snap:
@@ -110,8 +130,10 @@ class Anssis:
         # First good answer to a frozen request: keep it as the snapshot,
         # before any rewrite or injection touches it.
         k = flow.metadata.get("anssis_frozen")
-        if k and k != "served" and resp.status_code == 200:
-            freeze.save(k, req.path, 200, list(resp.headers.items(multi=True)), resp.get_content() or b"")
+        # A frozen site also keeps redirects (login hops), never errors.
+        ok = resp.status_code == 200 or (flow.metadata.get("anssis_site_freeze") and resp.status_code < 400)
+        if k and k != "served" and ok:
+            freeze.save(k, req.path, resp.status_code, list(resp.headers.items(multi=True)), resp.get_content() or b"")
             record("freeze", req.host, req.path, "snapshot taken", **who)
 
         for rule in rs.matching("replace", req.host, req.method, req.path):

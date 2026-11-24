@@ -51,6 +51,15 @@ class Rule:
         self.ctype = d.get("content_type", "application/json")
         # freeze: requests whose Referer matches are frozen with the page.
         self.referer = re.compile(d["referer"]) if d.get("referer") else None
+        # freeze with `site`: every request to the host, any method. Answers
+        # are recorded until `capture_until` (ISO UTC), then the site is sealed:
+        # snapshot or refusal, never the real site.
+        self.site = bool(d.get("site"))
+        self.capture_until = d.get("capture_until", "")
+        self.volatile = re.compile(d.get("volatile", "(?!)"))
+
+    def sealed(self) -> bool:
+        return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()) >= self.capture_until
 
     def matches(self, host: str, method: str, path: str, request_text: str = "") -> bool:
         return (
