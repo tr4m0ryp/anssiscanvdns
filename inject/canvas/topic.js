@@ -41,12 +41,15 @@ CanvasHide.runTopic = function (tid, governed) {
   }
 
   (async () => {
-    // A slow topic sits on the spinner for its delay, then opens as usual.
+    // A slow topic sits on the spinner for its delay, then opens, whatever
+    // its type.
     const slow = (CanvasHide.course.slowTopics || {})[tid];
     if (slow) {
       const spinner = CanvasHide.loadingForever();
       await new Promise((r) => setTimeout(r, slow * 1000));
+      if (cancelled) return;
       spinner.remove();
+      return reveal();
     }
     const t = await api.topic(tid);
     if (cancelled) return;
