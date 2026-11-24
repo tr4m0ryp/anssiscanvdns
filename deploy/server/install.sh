@@ -23,6 +23,7 @@ fi
 echo "== CA and proxy certificate"
 install -d -m 755 "$ETC"
 sh "$HERE/ca.sh" "$OWNER"
+sh "$HERE/ca.sh" "$OWNER" social
 sh "$HERE/leaf.sh"
 
 echo "== dnsmasq rules"
